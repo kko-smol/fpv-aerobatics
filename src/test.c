@@ -30,8 +30,6 @@ GLint textureID;
 ESMatrix lViewMatrix;
 ESMatrix rViewMatrix;
 
-GLint tex;
-
 static const char *vertex_shader_source =
 	"attribute vec4 aPosition;    \n"
 	"attribute vec2 aUV;          \n"
