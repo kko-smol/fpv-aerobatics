@@ -45,6 +45,11 @@ typedef struct
     float   m[4][4];
 } ESMatrix;
 
+typedef struct
+{
+    float   m[4];
+} ESVextor;
+
 /// \brief multiply matrix specified by result with a scaling matrix and return new matrix in result
 /// \param result Specifies the input matrix.  Scaled matrix is returned in result.
 /// \param sx, sy, sz Scale factors along the x, y and z axes respectively

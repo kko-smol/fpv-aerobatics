@@ -7,17 +7,17 @@ Shaders::Shaders()
 
 std::string Shaders::getTexVertexShader()
 {
-    return "attribute vec4 aPosition;    \n"
+    return
+           "attribute vec4 aPosition;    \n"
            "attribute vec2 aUV;          \n"
            "                             \n"
-           "uniform mat4 viewMat;        \n"
-           "uniform mat4 modelMat;       \n"
+           "uniform mat4 mvpMat;        \n"
 
            "varying vec2 UV;             \n"
            "                             \n"
            "void main()                  \n"
            "{                            \n"
-           "    vec4 np = (viewMat*modelMat)*aPosition;\n"
+           "    vec4 np = mvpMat*aPosition;\n"
            "    UV = aUV;              \n"
            "    gl_Position.xyz = np.xyz; \n"
            "    gl_Position.w = 1.0; \n"
@@ -26,8 +26,10 @@ std::string Shaders::getTexVertexShader()
 
 std::string Shaders::getTexFragmentShader()
 {
-    return 	"#version 100                 \n"
+    return
+        #ifdef __arm__
             "precision mediump float;     \n"
+        #endif
             "varying vec2 UV;              \n"
             "uniform sampler2D tex1;\n"
             "                             \n"
@@ -35,8 +37,8 @@ std::string Shaders::getTexFragmentShader()
             "{                            \n"
             "    vec4 px = texture2D(tex1,UV);      \n"
             "    float y=0.5*(px.r+px.b); \n"
-            "		 float u=(px.g);           \n"
-            "		 float v=(px.a);           \n"
+            "	 float u=(px.g);           \n"
+            "	 float v=(px.a);           \n"
 
             "    y=1.1643*(y-0.0625);\n"
             "    u=u-0.5 ;\n"
@@ -44,25 +46,27 @@ std::string Shaders::getTexFragmentShader()
             "    float r=y+1.5958*v;\n"
             "    float g=y-0.39173*u-0.81290*v;\n"
             "    float b=y+2.017*u;\n"
-
             "    gl_FragColor = vec4(r, g, b, 1.0);  \n"
             "}                            \n";
 }
 
 std::string Shaders::getVecVertexShader()
 {
-    return "attribute vec4 aPosition;    \n"
+    return
+           "attribute vec4 aPosition;    \n"
            "attribute vec4 aColor;       \n"
            "                             \n"
-           "uniform mat4 viewMat;        \n"
-           "uniform mat4 modelMat;       \n"
+           "uniform mat4 mvpMat;        \n"
 
            "varying vec4 color;             \n"
            "                             \n"
            "void main()                  \n"
            "{                            \n"
-           "    vec4 np = (viewMat*modelMat)*aPosition;\n"
-           "    color = aColor;              \n"
+           "    vec4 pp = aPosition;     \n"
+           "    pp.w = 1.0;     \n"
+           "    vec4 np = mvpMat*pp;\n"
+           "    color.rgb = aColor.rgb;              \n"
+           "    color.a = 1.0;              \n"
            "    gl_Position.xyz = np.xyz; \n"
            "    gl_Position.w = 1.0; \n"
            "}                            \n";
@@ -70,12 +74,15 @@ std::string Shaders::getVecVertexShader()
 
 std::string Shaders::getVecFragmentShader()
 {
-    return 	"#version 100                 \n"
+    return
+        #ifdef __arm__
             "precision mediump float;     \n"
+        #endif
             "varying vec4 color;              \n"
             "                             \n"
             "void main()                  \n"
             "{                            \n"
-            "    gl_FragColor = color;  \n"
+            "    gl_FragColor.rgb = color.rgb;  \n"
+            "    gl_FragColor.a = 1.0;  \n"
             "}                            \n";
 }

@@ -3,11 +3,8 @@
 
 #include "shaders.h"
 #include <scene.h>
-#include <esUtil.h>
 
-class Renderer {
-
-};
+#include <renderer.h>
 
 class EglPrivate;
 class EglRenderer : public Renderer
@@ -15,19 +12,16 @@ class EglRenderer : public Renderer
 public:
     EglRenderer(ScenePtr scene);
 
-    int init();
+    virtual int init() override;
 
-    void setEyeMats(const ESMatrix& l, const ESMatrix& r );
-    const ESMatrix& leftEye() const;
-    const ESMatrix& rightEye() const;
-
-    void render();
+    virtual void render() override;
 private:
     EglPrivate* _egl;
-    ESMatrix _lEye;
-    ESMatrix _rEye;
     int scr_w, scr_h;
-    ScenePtr _scene;
+
+    // Renderer interface
+public:
+    virtual void exec() override;
 };
 
 #endif // EGLRENDERER_H

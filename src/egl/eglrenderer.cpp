@@ -11,6 +11,13 @@ extern "C" {
 #include "esUtil.h"
 }
 
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/constants.hpp> // glm::pi
+#include <glm/gtc/type_ptr.hpp>
+
 class EglPrivate{
 public:
     EGLDisplay _display;
@@ -23,27 +30,21 @@ public:
     GLint _viewMatrix;
 };
 
-EglRenderer::EglRenderer(ScenePtr scene):_scene(scene)
+EglRenderer::EglRenderer(ScenePtr scene):Renderer(scene)
 {
     _egl  = new EglPrivate();
 }
 
 int EglRenderer::init()
 {
-    int stage = 0;
-    std::cout << stage << std::endl;stage++;
-
     _egl->_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    std::cout << "DISP" << _egl->_display;
     if (_egl->_display == EGL_NO_DISPLAY) {
         return 0;
     }
-    std::cout << stage << std::endl;stage++;
     EGLint egl_major, egl_minor;
     if (!eglInitialize(_egl->_display, &egl_major, &egl_minor)) {
         return 0;
     }
-    std::cout << stage << std::endl;stage++;
     static EGLint const config_attribute_list[] = {
         EGL_RED_SIZE, 8,
         EGL_GREEN_SIZE, 8,
@@ -64,29 +65,26 @@ int EglRenderer::init()
     };
     EGLint num_config;
     eglChooseConfig(_egl->_display, config_attribute_list, &_egl->_config, 1,	&num_config);
-    std::cout << stage << std::endl;stage++;
+
     static const EGLint context_attribute_list[] = {
         EGL_CONTEXT_CLIENT_VERSION, 2,
         EGL_NONE
     };
-    std::cout << stage << std::endl;stage++;
+
     _egl->_context = eglCreateContext(_egl->_display, _egl->_config, EGL_NO_CONTEXT, context_attribute_list);
     if (_egl->_context == EGL_NO_CONTEXT) {
-        fprintf(stderr, "Error: eglCreateContext failed: 0x%08X\n",
-            eglGetError());
+        fprintf(stderr, "Error: eglCreateContext failed: 0x%08X\n", eglGetError());
         return 0;
     }
-    std::cout << stage << std::endl;stage++;
+
     static EGLint window_attribute_list[] = {
         EGL_NONE
     };
-    struct mali_native_window native_window = {
+    static struct mali_native_window native_window = {
         .width = 720,
         .height = 576,
     };
     _egl->_surface = eglCreateWindowSurface(_egl->_display, _egl->_config, &native_window, window_attribute_list);
-
-    std::cout << stage << std::endl;stage++;
     if (_egl->_surface == EGL_NO_SURFACE) {
         return 0;
     }
@@ -99,41 +97,44 @@ int EglRenderer::init()
 
     if (!eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context)) {
         return 0;
-    }
+    }    
+   if (!_scene->initEgl()){
+       return 0;
+   }
 
-    std::cout << stage << std::endl;stage++;
-    _scene->initEgl();
-    std::cout << stage << std::endl;stage++;
-    return 1;
+   glEnable(GL_DEPTH_TEST);
+
+   return 1;
 }
 
-void EglRenderer::setEyeMats(const ESMatrix &l, const ESMatrix &r)
-{
-    _lEye = l;
-    _rEye = r;
-}
-
-const ESMatrix &EglRenderer::leftEye() const
-{
-    return _lEye;
-}
-
-const ESMatrix &EglRenderer::rightEye() const
-{
-    return _rEye;
-}
 
 void EglRenderer::render()
 {
+    eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context);
+
+    float aspect = 1/((0.5*scr_w)/scr_h);
+
+    glm::mat4 gProjection = glm::perspectiveLH(glm::pi<float>()*0.25f, 1.0f/aspect, 0.010f, 10.f);
+    glm::mat4 gView = _view;
+
+    glViewport(0, 0, scr_w, scr_h);
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, scr_w/2, scr_h);
-    _scene->draw(_lEye);
+    _scene->draw(gView,gProjection);
 
     glViewport(scr_w/2, 0, scr_w/2, scr_h);
-    _scene->draw(_rEye);
+    _scene->draw(gView,gProjection);
 
-    eglSwapBuffers(_egl->_display, _egl->_surface);
+    glFinish();
+    if (!eglSwapBuffers(_egl->_display, _egl->_surface)){
+        std::cout << "SWap error: " << eglGetError() << std::endl;
+    }
+}
+
+void EglRenderer::exec()
+{
+
 }

@@ -1,6 +1,15 @@
 #include "app.h"
 #include <shaders.h>
 #include <iostream>
+#include <chrono>
+#ifdef __arm__
+#include <eglrenderer.h>
+#else
+#include <glutrendefer.h>
+#endif
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 App::App()
 {
@@ -27,20 +36,33 @@ bool App::init()
 
     std::cout << "4" << std::endl;
     _video->connectFrame([this](VideoBufferPtr buf){
-        this->onVideoFrame(buf);
+        _io.post([this,buf](){
+            this->onVideoFrame(buf);
+        });
     });
 
 
     std::cout << "5" << std::endl;
-    _scene = std::make_shared<Scene>();
+    _bgScene = std::make_shared<BgTexScene>();
+    _boxScene = std::make_shared<TestBoxScene>();
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,_boxScene}));
     //// egl render
     std::cout << "6" << std::endl;
+#ifdef __arm__
     _renderer = std::make_shared<EglRenderer>(_scene);
+#else
+    _renderer = std::make_shared<GlutRenderer>(_scene);
+#endif
 
     std::cout << "7" << std::endl;
     if(!_renderer->init()){
         return false;
     }
+
+    _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
+    _tel = std::make_shared<TelemetryReader>();
+    _serial->listen(std::static_pointer_cast<IOClient>(_tel));
+
     std::cout << "8" << std::endl;
     return true;
 }
@@ -61,8 +83,28 @@ void App::run()
 
 void App::onVideoFrame(VideoBufferPtr b)
 {
-    std::cout << "Frame" << std::endl;
-    //_scene->updateBgTexture(b);
-    //_renderer->render();
+    _bgScene->updateBgTexture(b);
+
+    auto rt = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
+    auto pt = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
+    auto ht = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
+
+    auto rrm = rt*pt*ht;
+
+    //std::cout << _tel->lastRoll() << std::endl;
+
+    glm::mat4 vm = glm::translate(rrm, glm::vec3(0.0f, 0.0f, -5.0));
+    _renderer->setViewMat(vm);
+    _renderer->render();
     _video->queue(b);
+    static auto last = std::chrono::high_resolution_clock::now();
+    static int frameCounter = 0;
+    ++frameCounter;
+    auto newFrameTime = std::chrono::high_resolution_clock::now();
+    if (std::chrono::duration_cast<std::chrono::milliseconds>(newFrameTime-last).count()>5000){
+        std::cout << "FPS" << 1000.0*(float)frameCounter/std::chrono::duration_cast<std::chrono::milliseconds>(newFrameTime-last).count() << std::endl;
+        frameCounter = 0;
+        last = newFrameTime;
+    }
+    _renderer->exec();
 }

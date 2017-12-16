@@ -4,29 +4,22 @@
 #include <esUtil.h>
 #include <Frame.h>
 #include <memory>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/constants.hpp> // glm::pi
 
 class Scene {
 public:
     Scene();
+    virtual ~Scene();
 
-    int initEgl();
-    void updateBgTexture(VideoBufferPtr b);
-    void draw(const ESMatrix &viewMat);
+    virtual int initEgl() = 0;
+    virtual void draw(const  glm::mat4 &viewMat, const  glm::mat4 &projMat) = 0;
 
-private:
-    int _texVShader;
-    int _texPShader;
-    int _texShaderPrg;
-    int _texViewMatU;
-    int _texModelMatU;
-    int _textureU;
-    uint _textureId;
-
-    int _vecVShader;
-    int _vecPShader;
-    int _vecShaderPrg;
-    int _vecViewMatU;
-    int _vecModelMatU;
+    void glCheckError();
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;

@@ -10,7 +10,10 @@ CppApplication {
         "src/capture",
         "src/egl",
         "src/mavlink",
-        "src/scene"
+        "src/scene",
+        qbs.sysroot+"/usr/include/eigen3",
+        qbs.sysroot+"/usr/include",
+        qbs.sysroot+"/usr/local/include",
     ]
 
     Group {
@@ -38,15 +41,7 @@ CppApplication {
             "*.cpp",
             "*.h"
         ]
-    }
-
-    Group {
-        name: "mavlink"
-        prefix: "src/mavlink/"
-        files:[
-            "*.cpp",
-            "*.h"
-        ]
+        excludeFiles: qbs.architecture.contains("arm") ? ["glut*"] : ["egl*"]
     }
 
     Group {
@@ -67,15 +62,46 @@ CppApplication {
         ]
     }
 
-    cpp.libraryPaths:[
-        "../../../usr/lib/arm-linux-gnueabihf"
-    ]
-    cpp.staticLibraries:[
+    Group {
+        name: "io"
+        prefix: "src/io/**/**"
+        files:[
+            "*.c",
+            "*.cpp",
+            "*.h"
+        ]
+    }
+
+    Group {
+        name: "telemetry"
+        prefix: "src/mavlink/**/**"
+        files:[
+            "*.c",
+            "*.cpp",
+            "*.h"
+        ]
+    }
+
+    property stringList libs: [
         "pthread",
-        "boost_system",
-        "EGL",
-        "GLESv2",
-        "UMP",
-        "Mali"
+        "boost_system"
     ]
+    cpp.staticLibraries:libs.concat(qbs.architecture.contains("arm") ? [
+                                                                   "EGL",
+                                                                   "GLESv2",
+                                                                   "UMP",
+                                                                   "Mali"
+                                                               ] : [
+                                                                           //"glut",
+                                                                           "GLEW",
+                                                                           "GL",
+                                                                           "glfw"
+                                                               ]
+                                    )
+    Group {
+        name: "The App itself"
+        fileTagsFilter: "application"
+        qbs.install: true
+        qbs.installDir: "/home/kest"
+    }
 }
