@@ -161,14 +161,13 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
     glUseProgram(_texShaderPrg);
     glCheckError();
 
-
 #define RATIO_K (640.0/480.0)
 
         GLfloat vVertices[] = {
-            0.5f*RATIO_K,  -0.5f,  0.0f, 1.0f,
-            0.5f*RATIO_K,   0.5f,  0.0f, 1.0f,
-            -0.5f*RATIO_K,  -0.5f, 0.0f, 1.0f,
-            -0.5f*RATIO_K,   0.5f, 0.0f, 1.0f
+            0.5f*RATIO_K,  -0.5f,  -1.0f, 1.0f,
+            0.5f*RATIO_K,   0.5f,  -1.0f, 1.0f,
+            -0.5f*RATIO_K,  -0.5f, -1.0f, 1.0f,
+            -0.5f*RATIO_K,   0.5f, -1.0f, 1.0f
         };
 
         GLfloat vUV[] = {
@@ -190,13 +189,17 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
     glUniform1i(_textureU, 0);
     glCheckError();
     auto v = glm::mat4(1.0f);
-    auto p = projMat;
-    auto m = glm::translate(glm::mat4(0.3f),glm::vec3(0.0,0.0,0.0));
+    auto p = glm::mat4(1.0f);
+    auto m = glm::mat4(1.0f);
 
-    auto mvp = m*v*p;
+    auto mvp = p*v*m;
 
     glUniformMatrix4fv(_texmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
     glCheckError();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glCheckError();
+
+    glClearColor(0,0,-1000,-1000);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
 }

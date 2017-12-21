@@ -11,9 +11,14 @@ CppApplication {
         "src/egl",
         "src/mavlink",
         "src/scene",
+        "src/json",
         qbs.sysroot+"/usr/include/eigen3",
         qbs.sysroot+"/usr/include",
         qbs.sysroot+"/usr/local/include",
+    ]
+
+    cpp.defines:[
+        //"GLM_LEFT_HANDED"
     ]
 
     Group {

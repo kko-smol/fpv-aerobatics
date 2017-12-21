@@ -10,6 +10,11 @@ Renderer::~Renderer()
 
 }
 
+void Renderer::setProjMat(const glm::mat4 &p)
+{
+    _proj = p;
+}
+
 void Renderer::setViewMat(const  glm::mat4 &m)
 {
     _view = m;

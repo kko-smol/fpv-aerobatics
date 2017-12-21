@@ -1,6 +1,6 @@
-#include "testboxscene.h"
+#include "objscene.h"
 #include <shaders.h>
-
+#include "objloader.hpp"
 #include <iostream>
 extern "C" {
 #ifdef __arm__
@@ -12,12 +12,16 @@ extern "C" {
 #endif
 }
 
-TestBoxScene::TestBoxScene():_angle1(0),_angle2(0),_angle3(0)
+ObjScene::ObjScene(std::string path)
 {
+
+    bool res = loadOBJ(path.c_str(),_verts,_uvs);
+    std::cerr << "OBJ LOAD:" << res << " : " << _verts.size() << " " <<
+                 _uvs.size() <<  std::endl;
 
 }
 
-int TestBoxScene::initEgl()
+int ObjScene::initEgl()
 {
 
     {
@@ -125,118 +129,35 @@ int TestBoxScene::initEgl()
             return 0;
         }
         std::cout << "Vec shader done\n";
+
     }
     return 1;
 }
 
 
 
-void TestBoxScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
+void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
 {
-
-
-#define P000 -0.5,-0.5,-0.5
-#define P100  0.5,-0.5,-0.5
-#define P010 -0.5, 0.5,-0.5
-#define P110  0.5, 0.5,-0.5
-#define P001 -0.5,-0.5, 0.5
-#define P101  0.5,-0.5, 0.5
-#define P011 -0.5, 0.5, 0.5
-#define P111  0.5, 0.5, 0.5
-
-
-
-    static float box[] = {
-        P000,P100,P110,
-        P110,P010,P000,
-        P001,P101,P111,
-        P111,P011,P001,
-
-        P000,P100,P101,
-        P000,P101,P001,
-        P010,P110,P111,
-        P010,P111,P011,
-
-        P000,P010,P011,
-        P000,P011,P001,
-        P100,P110,P111,
-        P100,P111,P101,
-    };
-
-    static float colors[] = {
-        1.0,1.0,0.0,
-        1.0,1.0,0.0,
-        1.0,1.0,0.0,
-        1.0,1.0,0.0,
-        1.0,1.0,0.0,
-        1.0,1.0,0.0,
-
-        1.0,1.0,1.0,
-        1.0,1.0,1.0,
-        1.0,1.0,1.0,
-        1.0,1.0,1.0,
-        1.0,1.0,1.0,
-        1.0,1.0,1.0,
-
-        0.0,1.0,0.0,
-        0.0,1.0,0.0,
-        0.0,1.0,0.0,
-        0.0,1.0,0.0,
-        0.0,1.0,0.0,
-        0.0,1.0,0.0,
-
-        0.0,0.0,1.0,
-        0.0,0.0,1.0,
-        0.0,0.0,1.0,
-        0.0,0.0,1.0,
-        0.0,0.0,1.0,
-        0.0,0.0,1.0,
-
-        1.0,0.0,0.0,
-        1.0,0.0,0.0,
-        1.0,0.0,0.0,
-        1.0,0.0,0.0,
-        1.0,0.0,0.0,
-        1.0,0.0,0.0,
-
-        0.0,1.0,1.0,
-        0.0,1.0,1.0,
-        0.0,1.0,1.0,
-        0.0,1.0,1.0,
-        0.0,1.0,1.0,
-        0.0,1.0,1.0
-    };
 
     glCheckError();
     glUseProgram(_vecShaderPrg);
     glCheckError();
 
-    glVertexAttribPointer(_vecAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, box);
-    glVertexAttribPointer(_colAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, colors);
+
+    glVertexAttribPointer(_vecAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, _verts.data());
+    glVertexAttribPointer(_colAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, _uvs.data());
 
     glEnableVertexAttribArray(_vecAttrLoc);
     glEnableVertexAttribArray(_colAttrLoc);
 
     auto v = viewMat;
     auto p = projMat;
-    auto m = glm::scale(glm::mat4(1.0),glm::vec3(0.5,0.5,0.5));
+    auto m = glm::mat4(1.0f);
 
     auto mvp = p*v*m;
 
-    //printf("\n");
-    //for (int y=0;y<4;++y){
-    //    for (int x=0;x<4;++x){
-    //        printf(" %f ",glm::value_ptr(mvp)[y*4+x]);
-    //    }
-    //    printf("\n");
-    //}
-    //printf("\n");
-
     glUniformMatrix4fv(_vecmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    glDrawArrays(GL_TRIANGLES, 0, 3*4*3);
-    _angle1 +=0.05;
-    _angle2 +=0.1;
-    _angle3 +=1;
-glFinish();
+    glDrawArrays(GL_TRIANGLES, 0, _verts.size());
+    glFinish();
 }

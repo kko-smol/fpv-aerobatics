@@ -5,6 +5,7 @@
 #include <renderer.h>
 #include <bgtexscene.h>
 #include <testboxscene.h>
+#include <objscene.h>
 #include <groupscene.h>
 #include <boost/asio.hpp>
 #include <telemetryreader.h>
@@ -32,6 +33,7 @@ private:
 
     std::shared_ptr<GroupScene>  _scene;
     std::shared_ptr<BgTexScene>  _bgScene;
+    std::shared_ptr<ObjScene>    _obj;
     std::shared_ptr<TestBoxScene>  _boxScene;
     std::shared_ptr<Renderer> _renderer;
 

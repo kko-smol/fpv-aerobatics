@@ -45,7 +45,8 @@ bool App::init()
     std::cout << "5" << std::endl;
     _bgScene = std::make_shared<BgTexScene>();
     _boxScene = std::make_shared<TestBoxScene>();
-    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,_boxScene}));
+    //_obj = std::make_shared<ObjScene>("/home/kest/test.obj");
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({/*_bgScene,*/_boxScene/*,_obj*/}));
     //// egl render
     std::cout << "6" << std::endl;
 #ifdef __arm__
@@ -85,16 +86,23 @@ void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
 
-    auto rt = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
-    auto pt = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
-    auto ht = glm::rotate(glm::mat4(1.0f),(float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
+    auto rt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
+    auto pt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
+    auto ht = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
 
     auto rrm = rt*pt*ht;
 
     //std::cout << _tel->lastRoll() << std::endl;
 
-    glm::mat4 vm = glm::translate(rrm, glm::vec3(0.0f, 0.0f, -5.0));
-    _renderer->setViewMat(vm);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0),0.5*720.0/576.0,1.0,1000.0);
+    //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -100.0f, 100.0f);;
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0,0.0,-10),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0))*rrm;
+    //view = glm::rotate(view, 0.0, glm::vec3(-1.0f, 0.0f, 0.0f));
+    //view = glm::rotate(view, 0.0, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    _renderer->setProjMat(proj);
+
+    _renderer->setViewMat(view);
     _renderer->render();
     _video->queue(b);
     static auto last = std::chrono::high_resolution_clock::now();

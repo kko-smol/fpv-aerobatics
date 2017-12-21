@@ -82,7 +82,7 @@ int EglRenderer::init()
     };
     static struct mali_native_window native_window = {
         .width = 720,
-        .height = 576,
+                .height = 576,
     };
     _egl->_surface = eglCreateWindowSurface(_egl->_display, _egl->_config, &native_window, window_attribute_list);
     if (_egl->_surface == EGL_NO_SURFACE) {
@@ -90,21 +90,25 @@ int EglRenderer::init()
     }
 
     if (!eglQuerySurface(_egl->_display, _egl->_surface, EGL_WIDTH, &scr_w) ||
-        !eglQuerySurface(_egl->_display, _egl->_surface, EGL_HEIGHT, &scr_h)) {
+            !eglQuerySurface(_egl->_display, _egl->_surface, EGL_HEIGHT, &scr_h)) {
         return 0;
     }
     std::cout << "Surface size: " <<  scr_w << "x" << scr_h << std::endl;
 
     if (!eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context)) {
         return 0;
-    }    
-   if (!_scene->initEgl()){
-       return 0;
-   }
+    }
+    if (!_scene->initEgl()){
+        return 0;
+    }
 
-   glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    //glFrontFace(GL_CCW);
+    //glCullFace(GL_BACK);
 
-   return 1;
+    return 1;
 }
 
 
@@ -112,21 +116,15 @@ void EglRenderer::render()
 {
     eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context);
 
-    float aspect = 1/((0.5*scr_w)/scr_h);
-
-    glm::mat4 gProjection = glm::perspectiveLH(glm::pi<float>()*0.25f, 1.0f/aspect, 0.010f, 10.f);
-    glm::mat4 gView = _view;
-
     glViewport(0, 0, scr_w, scr_h);
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, scr_w/2, scr_h);
-    _scene->draw(gView,gProjection);
+    _scene->draw(_view,_proj);
 
     glViewport(scr_w/2, 0, scr_w/2, scr_h);
-    _scene->draw(gView,gProjection);
+    _scene->draw(_view,_proj);
 
     glFinish();
     if (!eglSwapBuffers(_egl->_display, _egl->_surface)){

@@ -12,6 +12,7 @@ public:
 
     virtual int init() = 0;
 
+    void setProjMat(const glm::mat4& p);
     void setViewMat(const glm::mat4& m);
     void setEyeMats(const glm::mat4& l, const glm::mat4& r );
 
@@ -19,7 +20,7 @@ public:
     virtual void render() = 0;
 protected:
     glm::mat4 _view;
-
+    glm::mat4 _proj;
     glm::mat4 _leye;
     glm::mat4 _reye;
 
@@ -28,3 +29,4 @@ protected:
 };
 
 #endif // RENDERER_H
+

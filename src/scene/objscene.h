@@ -1,12 +1,12 @@
-#ifndef TESTBOXSCENE_H
-#define TESTBOXSCENE_H
+#ifndef OBJSCENE_H
+#define OBJSCENE_H
 
 #include <scene.h>
 
-class TestBoxScene:public Scene
+class ObjScene:public Scene
 {
 public:
-    TestBoxScene();
+    ObjScene(std::string file);
 
     // Scene interface
 public:
@@ -22,9 +22,8 @@ private:
     int _vecAttrLoc;
     int _colAttrLoc;
 
-    float _angle1;
-    float _angle2;
-    float _angle3;
+    std::vector<glm::vec3> _verts;
+    std::vector<glm::vec3> _uvs;
 };
 
 #endif // TESTBOXSCENE_H
