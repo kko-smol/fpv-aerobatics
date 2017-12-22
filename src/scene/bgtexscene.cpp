@@ -5,9 +5,13 @@
 extern "C" {
 #ifdef __arm__
 #include <EGL/egl.h>
+//#include <GLES/gl.h>
+//#include <GLES/glext.h>
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
+#include <GL/freeglut.h>
 #endif
 }
 
@@ -125,12 +129,38 @@ int BgTexScene::initEgl()
             return 0;
         }
 
+#define RATIO_K (640.0/480.0)
 
+        static const GLfloat vVertices[] = {
+            0.5f*RATIO_K,  -0.5f,  -1.0f, 1.0f,
+            0.5f*RATIO_K,   0.5f,  -1.0f, 1.0f,
+            -0.5f*RATIO_K,  -0.5f, -1.0f, 1.0f,
+            -0.5f*RATIO_K,   0.5f, -1.0f, 1.0f
+        };
 
-        glBindAttribLocation(_texShaderPrg, 0, "aPosition");
+        static const GLfloat vUV[] = {
+            0.0,0.0,
+            0.0,1.0,
+            1.0,0.0,
+            1.0,1.0
+        };
+
+        glGenBuffers(1,&_vertBuf);
+        glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
+        glBufferData(GL_ARRAY_BUFFER,4*4*sizeof(float),vVertices,GL_STATIC_DRAW);
+
+        glGenBuffers(1,&_textBuf);
+        glBindBuffer(GL_ARRAY_BUFFER,_textBuf);
+        glBufferData(GL_ARRAY_BUFFER,4*2*sizeof(float),vUV,GL_STATIC_DRAW);
+
+        GLuint vao;
+        glGenVertexArrays(1,&vao);
+
+        _vecAttrLoc = glGetAttribLocation(_texShaderPrg,"aPosition");
         glCheckError();
-        glBindAttribLocation(_texShaderPrg, 1, "aUV");
+        _texAttrLoc = glGetAttribLocation(_texShaderPrg,"aUV");
         glCheckError();
+
 
         glGenTextures(1, &_textureId);
         glCheckError();
@@ -155,42 +185,35 @@ void BgTexScene::updateBgTexture(VideoBufferPtr b)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
+void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 model)
 {
     glCheckError();
     glUseProgram(_texShaderPrg);
     glCheckError();
 
-#define RATIO_K (640.0/480.0)
+    //glVertexAttribPointer(_vecAttrLoc, 4, GL_FLOAT, GL_FALSE, 0, vVertices);
+    glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
+    glCheckError();
+    glEnableVertexAttribArray(_vecAttrLoc);
+    glCheckError();
+    glVertexAttribPointer(_vecAttrLoc, 4, GL_FLOAT, false, 0, 0);
+    glCheckError();
 
-        GLfloat vVertices[] = {
-            0.5f*RATIO_K,  -0.5f,  -1.0f, 1.0f,
-            0.5f*RATIO_K,   0.5f,  -1.0f, 1.0f,
-            -0.5f*RATIO_K,  -0.5f, -1.0f, 1.0f,
-            -0.5f*RATIO_K,   0.5f, -1.0f, 1.0f
-        };
-
-        GLfloat vUV[] = {
-            0.0,0.0,
-            0.0,1.0,
-            1.0,0.0,
-            1.0,1.0
-        };
-
-
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, vVertices);
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, vUV);
-        glEnableVertexAttribArray(1);
-
-
+    //glVertexAttribPointer(_texAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, vUV);
+    glBindBuffer(GL_ARRAY_BUFFER,_textBuf);
+    glCheckError();
+    glEnableVertexAttribArray(_texAttrLoc);
+    glCheckError();
+    glVertexAttribPointer(_texAttrLoc, 2, GL_FLOAT, false, 0, 0);
     glCheckError();
     glUniform1i(_textureU, 0);
     glCheckError();
     auto v = glm::mat4(1.0f);
+    float w =720.0/2;
+    float h= 576.0;
     auto p = glm::mat4(1.0f);
-    auto m = glm::mat4(1.0f);
+
+    auto m = glm::scale(glm::mat4(1.0f),glm::vec3(2.0f*h/w,2.0f,1.0f));
 
     auto mvp = p*v*m;
 
@@ -201,5 +224,7 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
 
     glClearColor(0,0,-1000,-1000);
     glClear(GL_DEPTH_BUFFER_BIT);
+
+    glBindBuffer(GL_ARRAY_BUFFER,0);
 
 }

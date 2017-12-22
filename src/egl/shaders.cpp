@@ -19,7 +19,7 @@ std::string Shaders::getTexVertexShader()
            "{                            \n"
            "    vec4 np = mvpMat*aPosition;\n"
            "    UV = aUV;              \n"
-           "    gl_Position = vec4(np.x/np.w,np.y/np.w,-0.999,1.0); \n"
+           "    gl_Position = np; \n"
            "}                            \n";
 }
 

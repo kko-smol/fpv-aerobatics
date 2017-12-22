@@ -1,10 +1,12 @@
 #include "scene.h"
 #include <shaders.h>
 #include <iostream>
+
 #ifdef __arm__
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #else
+#include <GL/freeglut.h>
 #include <GLFW/glfw3.h>
 #endif
 

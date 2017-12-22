@@ -1,0 +1,43 @@
+{
+	"name" : "test",
+	"accuracy":{
+		"pointRadius": 10.0,
+		"headingDelta": 180.0,
+		"rollDelta": 180.0,
+		"pitchDelta": 180.0
+	},
+	"points": [
+		{
+			"lon":54.000,
+			"lat":34.000,
+			"alt":250,
+			"roll":0,
+			"pitch":0,
+			"heading":0
+		},
+		{
+			"lon":54.001,
+			"lat":34.000,
+			"alt":200,
+			"roll":0,
+			"pitch":0,
+			"heading":0
+		},
+		{
+			"lon":54.001,
+			"lat":34.001,
+			"alt":300,
+			"roll":0,
+			"pitch":0,
+			"heading":0
+		},
+		{
+			"lon":54.000,
+			"lat":34.001,
+			"alt":250,
+			"roll":0,
+			"pitch":0,
+			"heading":0
+		}
+	]
+}

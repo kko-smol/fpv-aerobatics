@@ -121,10 +121,17 @@ void EglRenderer::render()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, scr_w/2, scr_h);
-    _scene->draw(_view,_proj);
+
+    float checkPointSize = 20.0;
+    glm::mat4 scale = glm::scale(glm::mat4(1.0),glm::vec3(checkPointSize,checkPointSize,checkPointSize));
+    glm::mat4 tm = glm::translate(glm::mat4(1.0),glm::vec3(20.0,0.0,0.0));
+
+    glm::mat4 m = tm*scale;
+
+    _scene->draw(_view,_proj,m);
 
     glViewport(scr_w/2, 0, scr_w/2, scr_h);
-    _scene->draw(_view,_proj);
+    _scene->draw(_view,_proj,m);
 
     glFinish();
     if (!eglSwapBuffers(_egl->_display, _egl->_surface)){

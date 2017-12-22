@@ -3,12 +3,13 @@
 
 #include <iostream>
 extern "C" {
+
 #ifdef __arm__
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 #else
 #include <GL/glew.h>
+#include <GL/freeglut.h>
 #endif
 }
 
@@ -131,7 +132,7 @@ int TestBoxScene::initEgl()
 
 
 
-void TestBoxScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
+void TestBoxScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 modelMat)
 {
 
 
@@ -238,5 +239,5 @@ void TestBoxScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
     _angle1 +=0.05;
     _angle2 +=0.1;
     _angle3 +=1;
-glFinish();
+
 }

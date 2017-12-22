@@ -11,6 +11,8 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "track/TrackReader.h"
+
 App::App()
 {
 
@@ -20,7 +22,7 @@ bool App::init()
 {
 
     //// video capture
-    std::string dev = "/dev/video0";
+    std::string dev = "/dev/video1";
     int vw = 640;
     int vh = 480;
     std::cout << "1" << std::endl;
@@ -45,8 +47,14 @@ bool App::init()
     std::cout << "5" << std::endl;
     _bgScene = std::make_shared<BgTexScene>();
     _boxScene = std::make_shared<TestBoxScene>();
-    //_obj = std::make_shared<ObjScene>("/home/kest/test.obj");
-    _scene = std::shared_ptr<GroupScene>(new GroupScene({/*_bgScene,*/_boxScene/*,_obj*/}));
+
+    // Track load
+    _trackPath = "/home/kest/track.trk";
+    auto track = TrackReader::readTrack(_trackPath);
+    _obj = std::make_shared<ObjScene>("/home/kest/test.obj");
+    _track = std::make_shared<TrackScene>(_obj,track);
+
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,_track*/}));
     //// egl render
     std::cout << "6" << std::endl;
 #ifdef __arm__
@@ -64,7 +72,8 @@ bool App::init()
     _tel = std::make_shared<TelemetryReader>();
     _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 
-    std::cout << "8" << std::endl;
+    glm::mat4 proj = glm::perspective(glm::radians(45.0),0.5*720.0/576.0,1.0,2000.0);
+    _renderer->setProjMat(proj);
     return true;
 }
 
@@ -86,21 +95,12 @@ void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
 
-    auto rt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
+    auto rt = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
     auto pt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
-    auto ht = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
+    auto ht = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
+    auto rrm = ht*pt*rt;
 
-    auto rrm = rt*pt*ht;
-
-    //std::cout << _tel->lastRoll() << std::endl;
-
-    glm::mat4 proj = glm::perspective(glm::radians(45.0),0.5*720.0/576.0,1.0,1000.0);
-    //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -100.0f, 100.0f);;
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0,0.0,-10),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0))*rrm;
-    //view = glm::rotate(view, 0.0, glm::vec3(-1.0f, 0.0f, 0.0f));
-    //view = glm::rotate(view, 0.0, glm::vec3(0.0f, 1.0f, 0.0f));
-
-    _renderer->setProjMat(proj);
+    glm::mat4 view = rrm/*glm::lookAt(glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0),glm::vec3(0.0,1.0,0.0))*/;
 
     _renderer->setViewMat(view);
     _renderer->render();

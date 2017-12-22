@@ -136,7 +136,7 @@ int ObjScene::initEgl()
 
 
 
-void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
+void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 modelMat)
 {
 
     glCheckError();
@@ -152,12 +152,12 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat)
 
     auto v = viewMat;
     auto p = projMat;
-    auto m = glm::mat4(1.0f);
+    auto m = modelMat;
 
     auto mvp = p*v*m;
 
     glUniformMatrix4fv(_vecmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glDrawArrays(GL_TRIANGLES, 0, _verts.size());
-    glFinish();
+
 }
