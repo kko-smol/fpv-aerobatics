@@ -18,6 +18,7 @@ private:
     int _texmvpMatU;
     int _textureU;
 
+    uint _vao;
     uint _vertBuf;
     uint _textBuf;
 

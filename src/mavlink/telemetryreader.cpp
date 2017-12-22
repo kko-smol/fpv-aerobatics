@@ -118,7 +118,7 @@ void TelemetryReader::readMessage(mavlink_message_t* msg)
             _lastPitch = 180.0*attitude.pitch/M_PI;
             _lastHeading = 180.0*attitude.yaw/M_PI;
 
-            std::cout << "GonAngles:" << _lastHeading << " " << _lastPitch << std::endl;
+            //std::cout << "GonAngles:" << _lastHeading << " " << _lastPitch << std::endl;
 
             break;
         }

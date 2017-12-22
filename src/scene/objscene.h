@@ -19,6 +19,10 @@ private:
     int _vecShaderPrg;
     int _vecmvpMatU;
 
+    uint _vao;
+    uint _vertBuf;
+    uint _colBuf;
+
     int _vecAttrLoc;
     int _colAttrLoc;
 

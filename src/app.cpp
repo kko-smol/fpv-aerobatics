@@ -54,7 +54,7 @@ bool App::init()
     _obj = std::make_shared<ObjScene>("/home/kest/test.obj");
     _track = std::make_shared<TrackScene>(_obj,track);
 
-    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,_track*/}));
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,*/_track}));
     //// egl render
     std::cout << "6" << std::endl;
 #ifdef __arm__
@@ -72,7 +72,8 @@ bool App::init()
     _tel = std::make_shared<TelemetryReader>();
     _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 
-    glm::mat4 proj = glm::perspective(glm::radians(45.0),0.5*720.0/576.0,1.0,2000.0);
+    glm::mat4 proj = glm::perspective(glm::radians(80.0),0.5*720.0/576.0,1.0,2000.0);
+    //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
     return true;
 }
@@ -98,9 +99,9 @@ void App::onVideoFrame(VideoBufferPtr b)
     auto rt = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
     auto pt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
     auto ht = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
-    auto rrm = ht*pt*rt;
+    auto rrm = ht*pt*rt*glm::lookAt(glm::vec3(0.0,0.0,50.0),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
 
-    glm::mat4 view = rrm/*glm::lookAt(glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0),glm::vec3(0.0,1.0,0.0))*/;
+    glm::mat4 view = rrm;
 
     _renderer->setViewMat(view);
     _renderer->render();

@@ -64,33 +64,22 @@ void GlutRenderer::render()
 {
     glfwMakeContextCurrent((GLFWwindow*) _window );
 
-    float aspect = 1/((0.5*scr_w)/scr_h);
-
-    glm::mat4 gProjection = glm::perspective(glm::pi<float>() * 0.3f, 1.0f/aspect, 1.0f, 10.f);
-    glm::mat4 gView = _view;
-
     glViewport(0, 0, scr_w, scr_h);
     _scene->glCheckError();
     static float a = 0.0;
     glClearColor(a, a, a, 1.0);
     _scene->glCheckError();
-    a=a+0.01;
-    if (a>=1.0){
-        a =0.0;
-    }
-
     glClear(GL_COLOR_BUFFER_BIT);
 
     _scene->glCheckError();
     glViewport(0, 0, scr_w/2, scr_h);
     _scene->glCheckError();
-    _scene->draw(gView,gProjection);
+    _scene->draw(_view,_proj);
     _scene->glCheckError();
     glViewport(scr_w/2, 0, scr_w/2, scr_h);
     _scene->glCheckError();
-    _scene->draw(gView,gProjection);
+    _scene->draw(_view,_proj);
     _scene->glCheckError();
-    glfwPollEvents();
     _scene->glCheckError();
     glfwSwapBuffers( (GLFWwindow*)_window );
     _scene->glCheckError();

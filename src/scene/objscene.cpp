@@ -128,6 +128,20 @@ int ObjScene::initEgl()
             std::cout << "Find _vecModelMatU fail!\n";
             return 0;
         }
+
+
+        glGenBuffers(1,&_vertBuf);
+        glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
+        glBufferData(GL_ARRAY_BUFFER,3*sizeof(float)*_verts.size(),_verts.data(),GL_STATIC_DRAW);
+
+        glGenBuffers(1,&_colBuf);
+        glBindBuffer(GL_ARRAY_BUFFER,_colBuf);
+        glBufferData(GL_ARRAY_BUFFER,3*sizeof(float)*_uvs.size(),_uvs.data(),GL_STATIC_DRAW);
+
+#ifndef __arm__
+        glGenVertexArrays(1,&_vao);
+#endif
+
         std::cout << "Vec shader done\n";
 
     }
@@ -143,18 +157,44 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     glUseProgram(_vecShaderPrg);
     glCheckError();
 
+#ifndef __arm__
+    glBindVertexArray(_vao);
+#endif
 
-    glVertexAttribPointer(_vecAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, _verts.data());
-    glVertexAttribPointer(_colAttrLoc, 3, GL_FLOAT, GL_FALSE, 0, _uvs.data());
-
+    //glVertexAttribPointer(_vecAttrLoc, 4, GL_FLOAT, GL_FALSE, 0, vVertices);
+    glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
+    glCheckError();
     glEnableVertexAttribArray(_vecAttrLoc);
+    glCheckError();
+    glVertexAttribPointer(_vecAttrLoc, 3, GL_FLOAT, false, 0, 0);
+    glCheckError();
+
+    //glVertexAttribPointer(_texAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, vUV);
+    glBindBuffer(GL_ARRAY_BUFFER,_colBuf);
+    glCheckError();
     glEnableVertexAttribArray(_colAttrLoc);
+    glCheckError();
+    glVertexAttribPointer(_colAttrLoc, 3, GL_FLOAT, false, 0, 0);
+    glCheckError();
 
     auto v = viewMat;
     auto p = projMat;
     auto m = modelMat;
 
     auto mvp = p*v*m;
+    /*printf("\n");
+    for (int y=0;y<4;++y){
+        for (int x=0;x<4;++x){
+            printf(" %f ",glm::value_ptr(mvp)[y*4+x]);
+        }
+        printf("\n");
+    }
+    printf("\n");*/
+
+    auto tv1 = mvp*glm::vec4(_verts.at(0),1.0f);
+    auto tv2 = mvp*glm::vec4(1.0,1.0,1.0,1.0);
+//    printf(" (%f;%f;%f), (%f;%f;%f) \n",tv1.x/tv1.w,tv1.y/tv1.w,tv1.z/tv1.w,
+//           tv2.x/tv2.w,tv2.y/tv2.w,tv2.z/tv2.w);
 
     glUniformMatrix4fv(_vecmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
 

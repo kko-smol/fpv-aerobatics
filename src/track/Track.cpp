@@ -15,11 +15,11 @@ TrackPoint::TrackPoint(glm::vec3 pos, glm::vec3 ang):_pos(pos),_ang(ang) {
 
 Track::Track(std::vector<TrackPoint> points, std::string name):_name(name)
 {
-    glm::vec3 origin = glm::vec3(0.0,0.0,0.0);
+    glm::dvec3 origin = glm::dvec3(0.0,0.0,0.0);
     for (size_t i=0; i<points.size();++i){
         origin+=points.at(i).pos();
     }
-    origin=origin/((float)points.size());
+    origin=origin/((double)points.size());
     _trackBase = origin;
 
     std::vector<TrackPoint> newPoints;

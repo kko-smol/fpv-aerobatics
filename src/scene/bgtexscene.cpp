@@ -153,8 +153,9 @@ int BgTexScene::initEgl()
         glBindBuffer(GL_ARRAY_BUFFER,_textBuf);
         glBufferData(GL_ARRAY_BUFFER,4*2*sizeof(float),vUV,GL_STATIC_DRAW);
 
-        GLuint vao;
-        glGenVertexArrays(1,&vao);
+#ifndef __arm__
+        glGenVertexArrays(1,&_vao);
+#endif
 
         _vecAttrLoc = glGetAttribLocation(_texShaderPrg,"aPosition");
         glCheckError();
@@ -190,6 +191,10 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const 
     glCheckError();
     glUseProgram(_texShaderPrg);
     glCheckError();
+
+#ifndef __arm__
+    glBindVertexArray(_vao);
+#endif
 
     //glVertexAttribPointer(_vecAttrLoc, 4, GL_FLOAT, GL_FALSE, 0, vVertices);
     glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
