@@ -108,8 +108,20 @@ Project {
         }
 
         Group {
+            condition: qbs.architecture.contains("arm")
             name: "telemetry"
             prefix: "src/mavlink/**/**"
+            files:[
+                "*.c",
+                "*.cpp",
+                "*.h"
+            ]
+        }
+
+        Group {
+            condition: !qbs.architecture.contains("arm")
+            name: "telemetry_mock"
+            prefix: "tests/Mocks/"
             files:[
                 "*.c",
                 "*.cpp",
@@ -122,32 +134,11 @@ Project {
             "boost_system"
         ]
 
-        Properties{
-            condition: !qbs.architecture.contains("arm")
-            cpp.libraryPaths :[
-                "/home/kiselev/mali/Mali_OpenGL_ES_SDK_v2.4.4/lib/emulator_x64"
-            ]
-        }
-
-        Group {
-            name: "ArmMaliEmulator"
-            prefix: "/home/kiselev/mali/Mali_OpenGL_ES_SDK_v2.4.4/simple_framework/**/*"
-            files:[
-                "*.cpp",
-                "*.h"
-            ]
-            excludeFiles: [
-                "Windows*",
-                "*OnArm*"
-            ]
-        }
-
-
         property stringList eglLibs: qbs.architecture.contains("arm") ? [
                                                                             "EGL",
                                                                             "GLESv2",
-                                                                            //"UMP",
-                                                                            //"Mali"
+                                                                            "UMP",
+                                                                            "Mali"
                                                                         ] : [
                                                                             "glut",
                                                                             "GLEW",

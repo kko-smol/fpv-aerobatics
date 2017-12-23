@@ -15,10 +15,10 @@ int TrackScene::initEgl()
         float checkPointSize = 20.0;
         glm::mat4 scale = glm::scale(glm::mat4(1.0),glm::vec3(checkPointSize,checkPointSize,checkPointSize));
         glm::mat4 tm = glm::translate(glm::mat4(1.0),pt.pos());
-        glm::mat4 rmr = glm::mat4(1.0);//glm::rotate(glm::mat4(1.0),pt.ang().x,glm::vec3(0.0,1.0,0.0));
-        glm::mat4 rmp = glm::mat4(1.0);//glm::rotate(glm::mat4(1.0),pt.ang().y,glm::vec3(1.0,0.0,0.0));
-        glm::mat4 rmh = glm::mat4(1.0);//glm::rotate(glm::mat4(1.0),pt.ang().z,glm::vec3(0.0,0.0,1.0));
-        glm::mat4 m = rmh*rmp*rmr*tm*scale;
+        glm::mat4 rmr = glm::rotate(glm::mat4(1.0),glm::radians(pt.ang().x),glm::vec3(0.0,1.0,0.0));
+        glm::mat4 rmp = glm::rotate(glm::mat4(1.0),glm::radians(pt.ang().y+90.0f),glm::vec3(1.0,0.0,0.0));
+        glm::mat4 rmh = glm::rotate(glm::mat4(1.0),glm::radians(pt.ang().z),glm::vec3(0.0,0.0,1.0));
+        glm::mat4 m = tm*rmr*rmp*rmh*scale;
         _pointMats.push_back(m);
     }
 

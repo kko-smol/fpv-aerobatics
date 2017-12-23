@@ -34,8 +34,8 @@ int GlutRenderer::init()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     _scene->glCheckError();
 
-    scr_w = 720;
-    scr_h = 576;
+    scr_w = 980;
+    scr_h = 600;
     _window = glfwCreateWindow(scr_w,scr_h,"Test",NULL,NULL);
     glfwMakeContextCurrent( (GLFWwindow*)_window );
     _scene->glCheckError();

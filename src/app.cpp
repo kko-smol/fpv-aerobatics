@@ -10,7 +10,9 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtx/euler_angles.hpp>
 
+#include <gis/CorrdsConverter.h>
 #include "track/TrackReader.h"
 
 App::App()
@@ -22,7 +24,7 @@ bool App::init()
 {
 
     //// video capture
-    std::string dev = "/dev/video1";
+    std::string dev = "/dev/video0";
     int vw = 640;
     int vh = 480;
     std::cout << "1" << std::endl;
@@ -50,11 +52,11 @@ bool App::init()
 
     // Track load
     _trackPath = "/home/kest/track.trk";
-    auto track = TrackReader::readTrack(_trackPath);
+    _track = TrackReader::readTrack(_trackPath);
     _obj = std::make_shared<ObjScene>("/home/kest/test.obj");
-    _track = std::make_shared<TrackScene>(_obj,track);
+    _trackScene = std::make_shared<TrackScene>(_obj,_track);
 
-    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,*/_track}));
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,*/_trackScene}));
     //// egl render
     std::cout << "6" << std::endl;
 #ifdef __arm__
@@ -69,10 +71,14 @@ bool App::init()
     }
 
     _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
+#ifndef __arm__
+    _tel = std::make_shared<TelemetryReaderMock>(_track);
+#else
     _tel = std::make_shared<TelemetryReader>();
+#endif
     _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 
-    glm::mat4 proj = glm::perspective(glm::radians(80.0),0.5*720.0/576.0,1.0,2000.0);
+    glm::mat4 proj = glm::perspective(glm::radians(50.0),0.5*720.0/576.0,1.0,2000.0);
     //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
     return true;
@@ -96,10 +102,32 @@ void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
 
-    auto rt = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastRoll()   *M_PI/180.0),glm::vec3(0.0,0.0,1.0));
-    auto pt = glm::rotate(glm::mat4(1.0f),-(float)(_tel->lastPitch()  *M_PI/180.0),glm::vec3(1.0,0.0,0.0));
-    auto ht = glm::rotate(glm::mat4(1.0f), (float)(_tel->lastHeading()*M_PI/180.0),glm::vec3(0.0,1.0,0.0));
-    auto rrm = ht*pt*rt*glm::lookAt(glm::vec3(0.0,0.0,50.0),glm::vec3(0.0,0.0,0.0),glm::vec3(0.0,1.0,0.0));
+    glm::vec3 pos = CoordsConverter::toMercator(
+                glm::vec3(
+                    _tel->lastLon(),
+                    _tel->lastLat(),
+                    _tel->lastAlt()));
+
+    glm::mat4 tr = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastRoll()),glm::vec3   (0.0f,1.0f,0.0f));
+    glm::mat4 tp = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastPitch()),glm::vec3  (1.0f,0.0f,0.0f));
+    glm::mat4 th = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastHeading()),glm::vec3(0.0f,0.0f,1.0f));
+    glm::mat4 tm = th*tp*tr;
+    glm::vec4 vv(0.0,1.0,0.0,0.0);
+    glm::vec4 tv(0.0,0.0,1.0,0.0);
+
+    glm::vec3 base = (_track->trackBase());
+    glm::vec3 from(pos - base);
+    glm::vec3 to = glm::vec3(tm*vv);
+    tv = tm*tv;
+
+    std::cout << "IV" << to.x << "," << to.y << "," << to.z << std::endl;
+    std::cout << "OV" << vv.x << "," << vv.y << "," << vv.z << std::endl << std::endl;
+
+    to = from - to;
+
+    glm::vec3 lp = pos-_track->trackBase();
+
+    auto rrm = glm::lookAt(from,to,glm::vec3(tv));//glm::translate(glm::mat4(1.0f),lp);
 
     glm::mat4 view = rrm;
 

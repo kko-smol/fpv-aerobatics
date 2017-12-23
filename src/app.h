@@ -9,7 +9,11 @@
 #include <scene/TrackScene.h>
 #include <groupscene.h>
 #include <boost/asio.hpp>
+#ifndef  __arm__
+#include "../tests/Mocks/telemetrysourcemock.h"
+#else
 #include <telemetryreader.h>
+#endif
 #include "io/serialportio.h"
 #include <thread>
 
@@ -28,13 +32,18 @@ protected:
 private:
     std::string _trackPath;
     std::thread _commThread;
+#ifndef __arm__
+    std::shared_ptr<TelemetryReaderMock> _tel;
+#else
     std::shared_ptr<TelemetryReader> _tel;
+#endif
     std::shared_ptr<SerialPortIo> _serial;
 
     std::shared_ptr<VDevice> _video;
 
     std::shared_ptr<GroupScene>  _scene;
-    std::shared_ptr<TrackScene> _track;
+    std::shared_ptr<TrackScene> _trackScene;
+    TrackPtr _track;
 
 
     std::shared_ptr<BgTexScene>  _bgScene;
