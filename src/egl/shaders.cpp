@@ -74,11 +74,10 @@ std::string Shaders::getVecFragmentShader()
         #ifdef __arm__
             "precision mediump float;     \n"
         #endif
-            "varying vec4 color;              \n"
-            "                             \n"
+            "varying vec4 color;          \n"
+            "uniform vec4 overrideColor;  \n"
             "void main()                  \n"
             "{                            \n"
-            "    gl_FragColor.rgb = color.rgb;  \n"
-            "    gl_FragColor.a = 1.0;  \n"
+            "    gl_FragColor = color*(1.0-overrideColor.a) + overrideColor*overrideColor.a;  \n"
             "}                            \n";
 }

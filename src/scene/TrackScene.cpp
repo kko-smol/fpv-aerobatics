@@ -1,6 +1,8 @@
 #include "TrackScene.h"
+#include <objscene.h>
 
-TrackScene::TrackScene(ScenePtr checkpoint, TrackPtr track):Scene(),_track(track),_checkpoint(checkpoint)
+TrackScene::TrackScene(ScenePtr checkpoint, TrackPtr track, std::shared_ptr<TrackController> tc, ScenePtr arrow,std::shared_ptr<TelemetryReader> tel):Scene(),
+    _track(track),_checkpoint(checkpoint),_tc(tc),_arrow(arrow),_tel(tel)
 {
 
 }
@@ -22,23 +24,29 @@ int TrackScene::initEgl()
         _pointMats.push_back(m);
     }
 
+    _arrow->initEgl();
     return _checkpoint->initEgl();;
 }
 
 void TrackScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 modelMat)
 {
-    for (size_t i=0; i<_pointMats.size();++i){
-        glm::mat4 m = _pointMats[i];
-
-        /*printf("\nObj %u \n",i);
-        for (int y=0;y<4;++y){
-            for (int x=0;x<4;++x){
-                printf(" %f ",glm::value_ptr(m)[y*4+x]);
-            }
-            printf("\n");
-        }
-        printf("\n");*/
-
+    ObjScene* s = static_cast<ObjScene*>(_checkpoint.get());
+    { //cur target
+        s->setColor(glm::vec4(0.0,1.0,0.0,1.0));
+        glm::mat4 m = _pointMats[_tc->targetPointId()];
         _checkpoint->draw(viewMat,projMat,m*modelMat);
+    }
+    { //next target
+        s->setColor(glm::vec4(0.5,0.5,0.5,1.0));
+        glm::mat4 m = _pointMats[_tc->nextTargetPointId()];
+        _checkpoint->draw(viewMat,projMat,m*modelMat);
+    }
+    {
+        auto v = glm::mat4(1.0f);
+        auto p = glm::mat4(1.0f);
+        auto m = glm::rotate(glm::mat4(1.0f),-(float)M_PI/2.0f+(_tc->nextPointHdg())+glm::radians((float)_tel->lastHeading()),glm::vec3(0.0f,0.0f,1.0f))*
+                glm::translate(glm::mat4(1.0f),glm::vec3(0.0,0.0,0.999))*
+                glm::scale(glm::mat4(1.0f),glm::vec3(1.0f,1.0f,0.0f));
+        _arrow->draw(v,p,m);
     }
 }

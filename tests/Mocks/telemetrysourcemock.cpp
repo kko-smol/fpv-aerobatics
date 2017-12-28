@@ -129,6 +129,7 @@ void TelemetryReaderMock::readMessage(mavlink_message_t* msg)
             _lastPitch = 180.0*attitude.pitch/M_PI;
             _lastHeading = 180.0*attitude.yaw/M_PI;
 
+            notifyClients();
             //std::cout << "GonAngles:" << _lastHeading << " " << _lastPitch << std::endl;
 
             break;
@@ -168,12 +169,21 @@ void TelemetryReaderMock::readMessage(mavlink_message_t* msg)
             _lastLat = np.y;
             _lastLon = np.x;
 
+            notifyClients();
+
             break;
         }
 
         default:
             break;
         }
+    }
+}
+
+void TelemetryReaderMock::notifyClients()
+{
+    for (auto i=_clients.begin(); i!=_clients.end();++i){
+        (*i)->onAttitude(_lastTime,_lastLon,_lastLat,_lastAlt,_lastRoll,_lastPitch,_lastHeading);
     }
 }
 

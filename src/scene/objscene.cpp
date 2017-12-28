@@ -12,7 +12,7 @@ extern "C" {
 #endif
 }
 
-ObjScene::ObjScene(std::string path)
+ObjScene::ObjScene(std::string path):_color(0.0,0.0,0.0,0.0)
 {
 
     bool res = loadOBJ(path.c_str(),_verts,_uvs);
@@ -129,6 +129,13 @@ int ObjScene::initEgl()
             return 0;
         }
 
+        _vecColorU = glGetUniformLocation(_vecShaderPrg, "overrideColor");
+        glCheckError();
+        if (_vecColorU==-1) {
+            std::cout << "Find _vecColorU fail!\n";
+            return 0;
+        }
+
 
         glGenBuffers(1,&_vertBuf);
         glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
@@ -191,13 +198,24 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     }
     printf("\n");*/
 
-    auto tv1 = mvp*glm::vec4(_verts.at(0),1.0f);
-    auto tv2 = mvp*glm::vec4(1.0,1.0,1.0,1.0);
+//    auto tv1 = mvp*glm::vec4(_verts.at(0),1.0f);
+//    auto tv2 = mvp*glm::vec4(1.0,1.0,1.0,1.0);
 //    printf(" (%f;%f;%f), (%f;%f;%f) \n",tv1.x/tv1.w,tv1.y/tv1.w,tv1.z/tv1.w,
 //           tv2.x/tv2.w,tv2.y/tv2.w,tv2.z/tv2.w);
 
     glUniformMatrix4fv(_vecmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniform4fv(_vecColorU, 1, glm::value_ptr(_color));
 
     glDrawArrays(GL_TRIANGLES, 0, _verts.size());
 
+}
+
+glm::vec4 ObjScene::color() const
+{
+    return _color;
+}
+
+void ObjScene::setColor(const glm::vec4 &color)
+{
+    _color = color;
 }

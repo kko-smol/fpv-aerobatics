@@ -18,6 +18,26 @@ std::shared_ptr<Track> readTrack(std::string path)
 
     std::string name;
     std::vector<TrackPoint> points;
+    float posa = 10.0;
+    float ra = 10.0;
+    float pa = 10.0;
+    float ha = 10.0;
+    for (json::iterator it = f.begin(); it != f.end(); ++it) {
+        std::cout << it.key() << " : " << it.value() << "\n";
+        if(it.key()=="accuracy"){
+            for (json::iterator pit = it.value().begin(); pit != it.value().end(); ++pit) {
+                if (pit.key()=="pointRadius"){
+                    posa = pit.value();
+                } else if (pit.key()=="headingDelta"){
+                    ha = pit.value();
+                } else if (pit.key()=="rollDelta"){
+                    ra = pit.value();
+                } else if (pit.key()=="pitchDelta"){
+                    pa = pit.value();
+                }
+            }
+        }
+    }
 
     for (json::iterator it = f.begin(); it != f.end(); ++it) {
         std::cout << it.key() << " : " << it.value() << "\n";
@@ -54,7 +74,7 @@ std::shared_ptr<Track> readTrack(std::string path)
             }
         }
     }
-    return std::make_shared<Track>(points,name);
+    return std::make_shared<Track>(points,name,posa,ra,pa,ha);
 }
 }
 

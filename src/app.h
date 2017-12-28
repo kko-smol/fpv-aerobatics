@@ -15,6 +15,8 @@
 #include <telemetryreader.h>
 #endif
 #include "io/serialportio.h"
+#include "io/udplistenio.h"
+#include <track/trackcontroller.h>
 #include <thread>
 
 class App
@@ -32,22 +34,22 @@ protected:
 private:
     std::string _trackPath;
     std::thread _commThread;
-#ifndef __arm__
-    std::shared_ptr<TelemetryReaderMock> _tel;
-#else
+
     std::shared_ptr<TelemetryReader> _tel;
-#endif
+
     std::shared_ptr<SerialPortIo> _serial;
+    std::shared_ptr<UdpListenIo> _udp;
 
     std::shared_ptr<VDevice> _video;
 
     std::shared_ptr<GroupScene>  _scene;
     std::shared_ptr<TrackScene> _trackScene;
     TrackPtr _track;
+    std::shared_ptr<TrackController> _trackController;
 
 
     std::shared_ptr<BgTexScene>  _bgScene;
-    std::shared_ptr<ObjScene>    _obj;
+
     std::shared_ptr<TestBoxScene>  _boxScene;
     std::shared_ptr<Renderer> _renderer;
 

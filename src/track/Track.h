@@ -20,9 +20,11 @@ private:
 
 class Track {
 public:
-
-
-    Track(std::vector<TrackPoint> points, std::string name);
+    Track(std::vector<TrackPoint> points, std::string name,
+          float posAccuracy,
+          float rollAccuracy,
+          float pitchAccuracy,
+          float hdgAccyracy);
 
     std::string name() const;
 
@@ -32,9 +34,23 @@ public:
 
     glm::vec3 longLatToTrack(glm::vec3 ll) const;
 
+    float posAccuracy() const;
+
+    float rollAccuracy() const;
+
+    float pitchAccuracy() const;
+
+    float hdgAccuracy() const;
+
 private:
+    float _posAccuracy;
+    float _rollAccuracy;
+    float _pitchAccuracy;
+    float _hdgAccuracy;
     std::string _name;
-    std::vector<TrackPoint> _points;
+    std::vector<TrackPoint> _localPoints;
+    std::vector<TrackPoint> _gisPoints;
+
     glm::vec3 _trackBase;
 };
 

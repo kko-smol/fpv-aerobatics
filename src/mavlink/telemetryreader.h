@@ -44,6 +44,7 @@ public:
 private:
 
     void readMessage(mavlink_message_t *msg);
+    void notifyClients();
 
     //mavlink
     uint32_t _sysId;

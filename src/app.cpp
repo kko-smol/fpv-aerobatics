@@ -23,6 +23,16 @@ App::App()
 bool App::init()
 {
 
+    //_serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
+    _udp = std::make_shared<UdpListenIo>(_io,14550);
+#ifndef __arm__
+    _tel = std::make_shared<TelemetryReader>();
+#else
+    _tel = std::make_shared<TelemetryReader>();
+#endif
+    //_serial->listen(std::static_pointer_cast<IOClient>(_tel));
+    _udp->listen(std::static_pointer_cast<IOClient>(_tel));
+
     //// video capture
     std::string dev = "/dev/video0";
     int vw = 640;
@@ -53,10 +63,13 @@ bool App::init()
     // Track load
     _trackPath = "/home/kest/track.trk";
     _track = TrackReader::readTrack(_trackPath);
-    _obj = std::make_shared<ObjScene>("/home/kest/test.obj");
-    _trackScene = std::make_shared<TrackScene>(_obj,_track);
+    auto checkpoint = std::make_shared<ObjScene>("/home/kest/test.obj");
+    auto arrow = std::make_shared<ObjScene>("/home/kest/arrow.obj");
+    _trackController = std::make_shared<TrackController>(_track);
 
-    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,/*_obj,*/_trackScene}));
+    _trackScene = std::make_shared<TrackScene>(checkpoint,_track,_trackController,arrow, _tel);
+
+    _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,_trackScene}));
     //// egl render
     std::cout << "6" << std::endl;
 #ifdef __arm__
@@ -70,15 +83,9 @@ bool App::init()
         return false;
     }
 
-    _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
-#ifndef __arm__
-    _tel = std::make_shared<TelemetryReaderMock>(_track);
-#else
-    _tel = std::make_shared<TelemetryReader>();
-#endif
-    _serial->listen(std::static_pointer_cast<IOClient>(_tel));
+    _tel->subscribe(std::static_pointer_cast<TelemetryListener>(_trackController));
 
-    glm::mat4 proj = glm::perspective(glm::radians(50.0),0.5*720.0/576.0,1.0,2000.0);
+    glm::mat4 proj = glm::perspective(glm::radians(40.0),0.5*720.0/576.0,10.0,10000.0);
     //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
     return true;
@@ -102,32 +109,28 @@ void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
 
+    glm::vec3 base = (_track->trackBase());
     glm::vec3 pos = CoordsConverter::toMercator(
                 glm::vec3(
                     _tel->lastLon(),
                     _tel->lastLat(),
-                    _tel->lastAlt()));
+                    _tel->lastAlt())) - base;
 
-    glm::mat4 tr = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastRoll()),glm::vec3   (0.0f,1.0f,0.0f));
-    glm::mat4 tp = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastPitch()),glm::vec3  (1.0f,0.0f,0.0f));
-    glm::mat4 th = glm::rotate(glm::mat4(1.0f),glm::radians(-(float)_tel->lastHeading()),glm::vec3(0.0f,0.0f,1.0f));
-    glm::mat4 tm = th*tp*tr;
-    glm::vec4 vv(0.0,1.0,0.0,0.0);
-    glm::vec4 tv(0.0,0.0,1.0,0.0);
+    auto tr = glm::rotate(glm::mat4(1.0),glm::radians((float)_tel->lastRoll()),glm::vec3(0.0,1.0,0.0));
+    auto tp = glm::rotate(glm::mat4(1.0),glm::radians((float)_tel->lastPitch()),glm::vec3(1.0,0.0,0.0));
+    auto th = glm::rotate(glm::mat4(1.0),glm::radians((float)_tel->lastHeading()),glm::vec3(0.0,0.0,-1.0));
 
-    glm::vec3 base = (_track->trackBase());
-    glm::vec3 from(pos - base);
-    glm::vec3 to = glm::vec3(tm*vv);
-    tv = tm*tv;
+    auto tm = th*tp*tr;
 
-    std::cout << "IV" << to.x << "," << to.y << "," << to.z << std::endl;
-    std::cout << "OV" << vv.x << "," << vv.y << "," << vv.z << std::endl << std::endl;
+    glm::vec4 los(0.0,1.0,0.0,0.0);
+    glm::vec4 top(0.0,0.0,1.0,0.0);
 
-    to = from - to;
+    glm::vec4 losR = tm*los;
+    glm::vec4 topR = tm*top;
 
-    glm::vec3 lp = pos-_track->trackBase();
+    glm::vec3 from(pos);
 
-    auto rrm = glm::lookAt(from,to,glm::vec3(tv));//glm::translate(glm::mat4(1.0f),lp);
+    auto rrm = glm::lookAt(from,from+glm::vec3(losR),glm::vec3(topR));//glm::translate(glm::mat4(1.0f),lp);
 
     glm::mat4 view = rrm;
 

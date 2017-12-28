@@ -11,7 +11,7 @@ public:
     UdpListenIo(boost::asio::io_service &ios, int port);
 
     void read();
-    void write(const std::vector<uint8_t> data){} //cannot write
+    void write(const std::vector<uint8_t> data);
 
 private:
 

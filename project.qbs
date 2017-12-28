@@ -108,7 +108,7 @@ Project {
         }
 
         Group {
-            condition: qbs.architecture.contains("arm")
+            condition: !qbs.architecture.contains("arm")
             name: "telemetry"
             prefix: "src/mavlink/**/**"
             files:[
@@ -119,7 +119,7 @@ Project {
         }
 
         Group {
-            condition: !qbs.architecture.contains("arm")
+            condition: qbs.architecture.contains("arm")
             name: "telemetry_mock"
             prefix: "tests/Mocks/"
             files:[
