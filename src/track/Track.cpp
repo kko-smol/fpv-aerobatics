@@ -23,10 +23,10 @@ Track::Track(std::vector<TrackPoint> points, std::string name, float posAccuracy
     _gisPoints = points;
     glm::dvec3 origin = glm::dvec3(0.0,0.0,0.0);
     for (size_t i=0; i<points.size();++i){
-        origin+=points.at(i).pos();
+        origin+=glm::dvec3(points.at(i).pos());
     }
     origin=origin/((double)points.size());
-    _trackBase = origin;
+    _trackBase = glm::vec3(origin);
 
     std::vector<TrackPoint> newPoints;
     for (size_t i=0; i<points.size();++i){

@@ -21,6 +21,7 @@ private:
     TrackPtr _track;
     size_t _nextPoint;
 
+    float _targetDist;
     glm::vec3 _dpos;
     glm::vec3 _dang;
 
@@ -29,6 +30,7 @@ public:
     virtual void onAttitude(uint64_t time,
                             double lon, double lat, double alt,
                             double roll, double pitch, double heading) override;
+    float targetDist() const;
 };
 
 typedef std::shared_ptr<TrackController> TrackControllerPtr;

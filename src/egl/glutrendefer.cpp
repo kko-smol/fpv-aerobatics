@@ -34,8 +34,8 @@ int GlutRenderer::init()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     _scene->glCheckError();
 
-    scr_w = 980;
-    scr_h = 600;
+    scr_w = 720;
+    scr_h = 576;
     _window = glfwCreateWindow(scr_w,scr_h,"Test",NULL,NULL);
     glfwMakeContextCurrent( (GLFWwindow*)_window );
     _scene->glCheckError();
@@ -69,7 +69,7 @@ void GlutRenderer::render()
     static float a = 0.0;
     glClearColor(a, a, a, 1.0);
     _scene->glCheckError();
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _scene->glCheckError();
     glViewport(0, 0, scr_w/2, scr_h);

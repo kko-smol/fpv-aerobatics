@@ -25,7 +25,7 @@ Project {
         ]
 
         cpp.defines:[
-            "GLES_VERSION=2"
+            "GLES_VERSION=2",
         ]
 
         Group {
@@ -108,7 +108,6 @@ Project {
         }
 
         Group {
-            condition: !qbs.architecture.contains("arm")
             name: "telemetry"
             prefix: "src/mavlink/**/**"
             files:[
@@ -119,9 +118,8 @@ Project {
         }
 
         Group {
-            condition: qbs.architecture.contains("arm")
-            name: "telemetry_mock"
-            prefix: "tests/Mocks/"
+            name: "h264encode"
+            prefix: "src/h264Compress/**/"
             files:[
                 "*.c",
                 "*.cpp",
@@ -131,7 +129,15 @@ Project {
 
         property stringList libs: [
             "pthread",
-            "boost_system"
+            "boost_system",
+            "avcodec",
+            "avformat",
+            "avutil",
+            "swresample",
+            "x264",
+            "z",
+            "mp3lame",
+
         ]
 
         property stringList eglLibs: qbs.architecture.contains("arm") ? [

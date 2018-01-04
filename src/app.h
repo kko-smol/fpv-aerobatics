@@ -9,15 +9,12 @@
 #include <scene/TrackScene.h>
 #include <groupscene.h>
 #include <boost/asio.hpp>
-#ifndef  __arm__
-#include "../tests/Mocks/telemetrysourcemock.h"
-#else
 #include <telemetryreader.h>
-#endif
 #include "io/serialportio.h"
 #include "io/udplistenio.h"
 #include <track/trackcontroller.h>
 #include <thread>
+#include <h264Compress/ffmpegencoder.h>
 
 class App
 {
@@ -54,6 +51,9 @@ private:
     std::shared_ptr<Renderer> _renderer;
 
     boost::asio::io_service _io;
+
+    std::shared_ptr<FfmpegEncoder> _encoder;
+    std::shared_ptr<ProcessThread> _compress;
 };
 
 #endif // APP_H

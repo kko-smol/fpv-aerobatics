@@ -168,7 +168,6 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     glBindVertexArray(_vao);
 #endif
 
-    //glVertexAttribPointer(_vecAttrLoc, 4, GL_FLOAT, GL_FALSE, 0, vVertices);
     glBindBuffer(GL_ARRAY_BUFFER,_vertBuf);
     glCheckError();
     glEnableVertexAttribArray(_vecAttrLoc);
@@ -176,7 +175,6 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     glVertexAttribPointer(_vecAttrLoc, 3, GL_FLOAT, false, 0, 0);
     glCheckError();
 
-    //glVertexAttribPointer(_texAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, vUV);
     glBindBuffer(GL_ARRAY_BUFFER,_colBuf);
     glCheckError();
     glEnableVertexAttribArray(_colAttrLoc);
@@ -189,7 +187,8 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     auto m = modelMat;
 
     auto mvp = p*v*m;
-    /*printf("\n");
+    /*
+    printf("MAT:\n");
     for (int y=0;y<4;++y){
         for (int x=0;x<4;++x){
             printf(" %f ",glm::value_ptr(mvp)[y*4+x]);
@@ -198,8 +197,8 @@ void ObjScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const gl
     }
     printf("\n");*/
 
-//    auto tv1 = mvp*glm::vec4(_verts.at(0),1.0f);
-//    auto tv2 = mvp*glm::vec4(1.0,1.0,1.0,1.0);
+    auto tv1 = mvp*glm::vec4(_verts.at(0),1.0f);
+    auto tv2 = mvp*glm::vec4(1.0,1.0,1.0,1.0);
 //    printf(" (%f;%f;%f), (%f;%f;%f) \n",tv1.x/tv1.w,tv1.y/tv1.w,tv1.z/tv1.w,
 //           tv2.x/tv2.w,tv2.y/tv2.w,tv2.z/tv2.w);
 

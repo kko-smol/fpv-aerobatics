@@ -3,6 +3,10 @@
 Renderer::Renderer(ScenePtr scene)
 {
     _scene = scene;
+    _proj = glm::mat4(1.0f);
+    _view = glm::mat4(1.0f);
+    _leye = glm::mat4(1.0f);
+    _reye = glm::mat4(1.0f);
 }
 
 Renderer::~Renderer()

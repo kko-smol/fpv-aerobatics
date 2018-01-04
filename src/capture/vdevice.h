@@ -36,8 +36,8 @@ public:
         boost::signals2::connection connectFrame(const SignalFrame::slot_type&);
 
 private:
-        static constexpr size_t defaultWidth()  { return 1920; };
-        static constexpr size_t defaultHeight() { return 1080; };
+        static constexpr size_t defaultWidth()  { return 640; };
+        static constexpr size_t defaultHeight() { return 480; };
 
         void reinit();
 

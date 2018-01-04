@@ -1,4 +1,4 @@
-#include "bgtexscene.h"
+#include "textscene.h".h"
 #include <shaders.h>
 
 #include <iostream>
@@ -15,12 +15,12 @@ extern "C" {
 #endif
 }
 
-BgTexScene::BgTexScene()
+TextScene::TextScene(int width):Scene(),_maxW(width)
 {
 
 }
 
-int BgTexScene::initEgl()
+int TextScene::initEgl()
 {
     {
         _texVShader = glCreateShader(GL_VERTEX_SHADER);
@@ -175,18 +175,7 @@ int BgTexScene::initEgl()
     return 1;
 }
 
-void BgTexScene::updateBgTexture(VideoBufferPtr b)
-{
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _textureId);
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, b->getWidth()/2, b->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, b->getDataPtr());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-}
-
-void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 model)
+void TextScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 model)
 {
     glCheckError();
     glUseProgram(_texShaderPrg);

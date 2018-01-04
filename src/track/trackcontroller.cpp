@@ -6,7 +6,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
 
-TrackController::TrackController(TrackPtr track):_track(track),_nextPoint(0)
+TrackController::TrackController(TrackPtr track):_track(track),_nextPoint(0),_targetDist(0.0)
 {
 
 }
@@ -32,6 +32,11 @@ int TrackController::nextTargetPointId() const
     return r;
 }
 
+float TrackController::targetDist() const
+{
+    return _targetDist;
+}
+
 void TrackController::onAttitude(uint64_t time, double lon, double lat, double alt, double roll, double pitch, double heading)
 {
     glm::vec3 pos = CoordsConverter::toMercator(glm::vec3(lon,lat,alt)) - _track->trackBase();
@@ -42,7 +47,9 @@ void TrackController::onAttitude(uint64_t time, double lon, double lat, double a
     _dpos = target-pos;
 
     float d = glm::length(_dpos);
-    std::cout << "TD: " << d << std::endl;
+    //std::cout << "TD: " << d << std::endl;
+
+    _targetDist = d;
 
     float dar = 0.0;
     float dap = 0.0;

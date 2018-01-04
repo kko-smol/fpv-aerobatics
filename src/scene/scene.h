@@ -1,7 +1,6 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <esUtil.h>
 #include <Frame.h>
 #include <memory>
 #include <glm/mat4x4.hpp>

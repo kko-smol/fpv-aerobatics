@@ -34,7 +34,7 @@ std::string Shaders::getTexFragmentShader()
             "                             \n"
             "void main()                  \n"
             "{                            \n"
-            "    vec4 px = texture2D(tex1,UV);      \n"
+            "    vec4 px = texture2D(tex1,vec2(UV.y,UV.x));      \n"
             "    float y=0.5*(px.r+px.b); \n"
             "	 float u=(px.g);           \n"
             "	 float v=(px.a);           \n"

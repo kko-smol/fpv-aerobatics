@@ -11,6 +11,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <gis/CorrdsConverter.h>
 #include "track/TrackReader.h"
@@ -23,15 +24,15 @@ App::App()
 bool App::init()
 {
 
-    //_serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
-    _udp = std::make_shared<UdpListenIo>(_io,14550);
-#ifndef __arm__
+#ifdef __arm__
+    _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyS1",115200);
     _tel = std::make_shared<TelemetryReader>();
+    _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 #else
+    _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
     _tel = std::make_shared<TelemetryReader>();
+    _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 #endif
-    //_serial->listen(std::static_pointer_cast<IOClient>(_tel));
-    _udp->listen(std::static_pointer_cast<IOClient>(_tel));
 
     //// video capture
     std::string dev = "/dev/video0";
@@ -43,20 +44,16 @@ bool App::init()
         return false;
     }
 
-    std::cout << "3" << std::endl;
     if (!_video->init(vw,vh,4)){
         return false;
     }
 
-    std::cout << "4" << std::endl;
     _video->connectFrame([this](VideoBufferPtr buf){
         _io.post([this,buf](){
             this->onVideoFrame(buf);
         });
     });
 
-
-    std::cout << "5" << std::endl;
     _bgScene = std::make_shared<BgTexScene>();
     _boxScene = std::make_shared<TestBoxScene>();
 
@@ -71,7 +68,6 @@ bool App::init()
 
     _scene = std::shared_ptr<GroupScene>(new GroupScene({_bgScene,_trackScene}));
     //// egl render
-    std::cout << "6" << std::endl;
 #ifdef __arm__
     _renderer = std::make_shared<EglRenderer>(_scene);
 #else
@@ -88,6 +84,10 @@ bool App::init()
     glm::mat4 proj = glm::perspective(glm::radians(40.0),0.5*720.0/576.0,10.0,10000.0);
     //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
+
+    _encoder = std::make_shared<FfmpegEncoder>(vw,vh);
+    _compress =std::make_shared<ProcessThread>(_encoder);
+
     return true;
 }
 

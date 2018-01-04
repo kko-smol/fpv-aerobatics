@@ -20,7 +20,7 @@ VDevice::VDevice()
     , height_(defaultHeight())
     , _playing(false)
     , skip_(false)
-
+    , exit_(false)
 {
 
 }
