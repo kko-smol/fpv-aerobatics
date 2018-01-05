@@ -25,7 +25,9 @@ private:
     std::shared_ptr<TrackController> _tc;
     std::vector<glm::mat4> _pointMats;
     std::shared_ptr<TelemetryReader> _tel;
+
     std::shared_ptr<TextScene> _distText;
+    std::shared_ptr<TextScene> _timeText;
 };
 
 #endif

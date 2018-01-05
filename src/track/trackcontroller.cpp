@@ -8,7 +8,7 @@
 
 TrackController::TrackController(TrackPtr track):_track(track),_nextPoint(0),_targetDist(0.0)
 {
-
+    _lastPointTs = std::chrono::high_resolution_clock::now();
 }
 
 float TrackController::nextPointHdg() const
@@ -30,6 +30,11 @@ int TrackController::nextTargetPointId() const
         r = 0;
     }
     return r;
+}
+
+std::chrono::milliseconds TrackController::msFromLastPoint() const
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - _lastPointTs );
 }
 
 float TrackController::targetDist() const
@@ -59,6 +64,7 @@ void TrackController::onAttitude(uint64_t time, double lon, double lat, double a
             &&(abs(dap)<_track->pitchAccuracy())
             &&(abs(dah)<_track->hdgAccuracy())){
         _nextPoint = nextTargetPointId();
+        _lastPointTs = std::chrono::high_resolution_clock::now();
     }
 
     _target = _track->points().at(targetPointId()).pos();

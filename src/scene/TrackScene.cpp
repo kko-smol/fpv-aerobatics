@@ -6,6 +6,7 @@ TrackScene::TrackScene(ScenePtr checkpoint, TrackPtr track, std::shared_ptr<Trac
     _track(track),_checkpoint(checkpoint),_tc(tc),_arrow(arrow),_tel(tel)
 {
     _distText = std::make_shared<TextScene>(6);
+    _timeText = std::make_shared<TextScene>(9);
 }
 
 int TrackScene::initEgl()
@@ -27,7 +28,8 @@ int TrackScene::initEgl()
 
     _arrow->initEgl();
     _distText->initEgl();
-    return _checkpoint->initEgl();;
+    _timeText->initEgl();
+    return _checkpoint->initEgl();
 }
 
 void TrackScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 modelMat)
@@ -72,7 +74,14 @@ void TrackScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const 
         _arrow->draw(v,p,m);
     }
     _distText->setText(std::to_string(_tc->targetDist()));
+    {
+        auto tflp = _tc->msFromLastPoint();
+        auto tstr = std::to_string((float)tflp.count()/1000.0);
+        _timeText->setText(tstr);
+    }
 
     _distText->draw(glm::mat4(1.0f),glm::mat4(1.0f),glm::translate(glm::mat4(1.0f),glm::vec3(-0.65,-0.9,0.0))*
-                    glm::scale(glm::mat4(1.0f),glm::vec3(0.6,0.1,1.0)));
+                    glm::scale(glm::mat4(1.0f),glm::vec3(0.6,0.08,1.0)));
+    _timeText->draw(glm::mat4(1.0f),glm::mat4(1.0f),glm::translate(glm::mat4(1.0f),glm::vec3(-0.50,-0.75,0.0))*
+                    glm::scale(glm::mat4(1.0f),glm::vec3(0.9,0.08,1.0)));
 }

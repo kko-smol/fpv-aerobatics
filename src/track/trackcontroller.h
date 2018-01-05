@@ -14,12 +14,15 @@ public:
     int targetPointId() const;
     int nextTargetPointId() const;
 
+    std::chrono::milliseconds msFromLastPoint() const;
+
 private:
 
     glm::vec3 _target;
 
     TrackPtr _track;
     size_t _nextPoint;
+    std::chrono::high_resolution_clock::time_point _lastPointTs;
 
     float _targetDist;
     glm::vec3 _dpos;
