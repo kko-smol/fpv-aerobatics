@@ -1,10 +1,11 @@
 #include "TrackScene.h"
 #include <objscene.h>
 
+
 TrackScene::TrackScene(ScenePtr checkpoint, TrackPtr track, std::shared_ptr<TrackController> tc, ScenePtr arrow,std::shared_ptr<TelemetryReader> tel):Scene(),
     _track(track),_checkpoint(checkpoint),_tc(tc),_arrow(arrow),_tel(tel)
 {
-
+    _distText = std::make_shared<TextScene>(6);
 }
 
 int TrackScene::initEgl()
@@ -25,6 +26,7 @@ int TrackScene::initEgl()
     }
 
     _arrow->initEgl();
+    _distText->initEgl();
     return _checkpoint->initEgl();;
 }
 
@@ -69,4 +71,8 @@ void TrackScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const 
                 glm::scale(glm::mat4(1.0f),glm::vec3(1.0f,1.0f,0.0f));
         _arrow->draw(v,p,m);
     }
+    _distText->setText(std::to_string(_tc->targetDist()));
+
+    _distText->draw(glm::mat4(1.0f),glm::mat4(1.0f),glm::translate(glm::mat4(1.0f),glm::vec3(-0.65,-0.9,0.0))*
+                    glm::scale(glm::mat4(1.0f),glm::vec3(0.6,0.1,1.0)));
 }

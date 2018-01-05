@@ -6,6 +6,7 @@
 #include <mavlink/telemetryreader.h>
 #include <track/Track.h>
 #include <track/trackcontroller.h>
+#include <textscene.h>
 
 class TrackScene : public Scene
 {
@@ -24,6 +25,7 @@ private:
     std::shared_ptr<TrackController> _tc;
     std::vector<glm::mat4> _pointMats;
     std::shared_ptr<TelemetryReader> _tel;
+    std::shared_ptr<TextScene> _distText;
 };
 
 #endif

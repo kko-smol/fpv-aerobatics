@@ -74,11 +74,12 @@ bool VDevice::init(int w, int h, int n)
     struct v4l2_format fmt = {
         .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
                 .fmt = {
-            .pix = {
-                .width       = width_,
-                .height      = height_,
-                .pixelformat = V4L2_PIX_FMT_YUYV,
-                .field       = V4L2_FIELD_ANY,
+            .pix_mp = {
+                .width = width_,
+                .height = height_,
+                .pixelformat = V4L2_PIX_FMT_NV12,
+                .field = V4L2_FIELD_ANY,
+                .colorspace = V4L2_COLORSPACE_RAW,
             },
         },
     };
@@ -112,7 +113,7 @@ bool VDevice::init(int w, int h, int n)
             return false;
         }
 
-        auto nb = std::make_shared<MmapBuffer>(w,h,2,2*w,V4L2_PIX_FMT_YUYV,fd_,v4lbuffer.m.offset);
+        auto nb = std::make_shared<MmapBuffer>(w,h,2,2*w,V4L2_PIX_FMT_NV12,fd_,v4lbuffer.m.offset);
         Buffer buffer{nb,v4lbuffer};
         nb->setUserData(this,i);
         buffers_.push_back(buffer);

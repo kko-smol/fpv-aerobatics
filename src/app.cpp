@@ -35,7 +35,7 @@ bool App::init()
 #endif
 
     //// video capture
-    std::string dev = "/dev/video0";
+    std::string dev = "/dev/video1";
     int vw = 640;
     int vh = 480;
     std::cout << "1" << std::endl;

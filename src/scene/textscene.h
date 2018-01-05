@@ -24,6 +24,9 @@ private:
     uint _vertBuf;
     uint _textBuf;
 
+    std::vector<glm::vec4> _vertices;
+    std::vector<glm::vec2> _UVs;
+
     int _vecAttrLoc;
     int _texAttrLoc;
 
@@ -31,6 +34,9 @@ private:
 
     int _maxW;
     std::string _text;
+    bool _textChanged;
+    std::string getTexVertexShader();
+    std::string getTexFragmentShader();
 };
 
 #endif // TEXTSCENE_H

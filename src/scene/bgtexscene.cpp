@@ -192,6 +192,10 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const 
     glUseProgram(_texShaderPrg);
     glCheckError();
 
+    glActiveTexture(GL_TEXTURE0);
+    glCheckError();
+    glBindTexture(GL_TEXTURE_2D, _textureId);
+
 #ifndef __arm__
     glBindVertexArray(_vao);
 #endif
