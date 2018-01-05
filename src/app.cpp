@@ -85,7 +85,7 @@ bool App::init()
     //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
 
-    _encoder = std::make_shared<FfmpegEncoder>(vw,vh);
+    _encoder = std::make_shared<FfmpegEncoder>(vw,vh,"/home/kest/rec.h264");
     _compress =std::make_shared<ProcessThread>(_encoder);
 
     return true;
@@ -99,6 +99,8 @@ void App::run()
         return;
     }
 
+    _compress->start();
+
     boost::asio::signal_set signals(_io, SIGINT, SIGTERM);
     signals.async_wait(
         boost::bind(&boost::asio::io_service::stop, &_io));
@@ -108,7 +110,7 @@ void App::run()
 void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
-
+    _compress->enqueue(std::static_pointer_cast<DataContainer>(b));
     glm::vec3 base = (_track->trackBase());
     glm::vec3 pos = CoordsConverter::toMercator(
                 glm::vec3(

@@ -12,12 +12,12 @@ class EncoderPrivate;
 class FfmpegEncoder : public Processor
 {
 public:
-    FfmpegEncoder(int w, int h);
+    FfmpegEncoder(int w, int h, std::string file);
     ~FfmpegEncoder();
 
     // Processor interface
 public:
-    virtual DataContainerPtr process(DataContainerPtr) override;
+    virtual DataContainerPtr process(DataContainerPtr buf) override;
 
 private:
     EncoderPrivate* _p;

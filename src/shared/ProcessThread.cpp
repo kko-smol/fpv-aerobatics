@@ -1,4 +1,5 @@
 #include "ProcessThread.h"
+#include <iostream>
 
 ProcessThread::ProcessThread(){
 
@@ -23,7 +24,9 @@ void ProcessThread::start() {
                     _queue.pop();
                 }
 
-                DataContainerPtr out = in->run(processor().get());
+                auto p = processor();
+
+                DataContainerPtr out = in->run(p.get());
 
                 if (out.get()!=nullptr){
                     sig_frame_(out);
@@ -77,5 +80,6 @@ bool ProcessorCommand::isTask() const
 
 DataContainerPtr ProcessorCommand::run(Processor * p)
 {
-    return p->process(_task);
+    auto res = p->process(_task);
+    return res;
 }

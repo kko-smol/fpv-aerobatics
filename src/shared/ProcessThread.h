@@ -42,7 +42,7 @@ public:
 
     ProcessThread(std::shared_ptr<Processor> proc);
 
-    std::shared_ptr<Processor> processor(){
+    const std::shared_ptr<Processor>& processor(){
         return _proc;
     }
 
@@ -55,6 +55,7 @@ public:
     void enqueue(DataContainerPtr input);
     void enqueueCmd(std::shared_ptr<ProcessorCommand> cmd);
 
+private:
     std::shared_ptr<Processor> _proc;
 
     bool _stopFlag;
