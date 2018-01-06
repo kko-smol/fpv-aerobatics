@@ -35,7 +35,7 @@ bool App::init()
 #endif
 
     //// video capture
-    std::string dev = "/dev/video1";
+    std::string dev = "/dev/video0";
     int vw = 640;
     int vh = 480;
     std::cout << "1" << std::endl;
@@ -110,13 +110,22 @@ void App::run()
 void App::onVideoFrame(VideoBufferPtr b)
 {
     _bgScene->updateBgTexture(b);
-    _compress->enqueue(std::static_pointer_cast<DataContainer>(b));
-    glm::vec3 base = (_track->trackBase());
-    glm::vec3 pos = CoordsConverter::toMercator(
-                glm::vec3(
-                    _tel->lastLon(),
-                    _tel->lastLat(),
-                    _tel->lastAlt())) - base;
+
+    std::shared_ptr<FfmpegEncoder::EncodeContainer> ec = std::make_shared<FfmpegEncoder::EncodeContainer>();
+
+    glm::vec3 gps = glm::vec3(
+                _tel->lastLon(),
+                _tel->lastLat(),
+                _tel->lastAlt());
+
+    ec->_frameData = b;
+    ec->_angles = {_tel->lastRoll(),
+                  _tel->lastPitch(),
+                  _tel->lastHeading()};
+    ec->_pos = gps;
+
+    _compress->enqueue(std::static_pointer_cast<DataContainer>(ec));
+    glm::vec3 pos = CoordsConverter::toMercator(gps) - _track->trackBase();
 
     auto tr = glm::rotate(glm::mat4(1.0),glm::radians((float)_tel->lastRoll()),glm::vec3(0.0,1.0,0.0));
     auto tp = glm::rotate(glm::mat4(1.0),glm::radians((float)_tel->lastPitch()),glm::vec3(1.0,0.0,0.0));

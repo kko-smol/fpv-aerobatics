@@ -159,6 +159,12 @@ Project {
             qbs.install: true
             qbs.installDir: "/home/kest"
         }
+
+        Properties{
+            condition: qbs.architecture.contains("arm")
+            cpp.cFlags: "-mfpu=neon-vfpv4"
+            cpp.cxxFlags : "-mfpu=neon-vfpv4"
+        }
     }
 
     Project {

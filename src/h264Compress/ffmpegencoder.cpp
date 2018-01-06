@@ -50,10 +50,10 @@ FfmpegEncoder::FfmpegEncoder(int w, int h, std::string file){
     _p->_ctx->bit_rate = 4000000; //4Mbit
     _p->_ctx->width = w;
     _p->_ctx->height = h;
-    _p->_ctx->time_base = (AVRational){1,25};
+    _p->_ctx->time_base = (AVRational){1,30};
     _p->_ctx->max_b_frames = 1;
-    _p->_ctx->gop_size = 25;
-    _p->_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
+    _p->_ctx->gop_size = 30;
+    _p->_ctx->pix_fmt = AV_PIX_FMT_NV12;
     av_opt_set(_p->_ctx->priv_data, "preset", "ultrafast", 0);
 
     if (avcodec_open2(_p->_ctx, _p->_codec, NULL) < 0) {
@@ -93,34 +93,39 @@ DataContainerPtr FfmpegEncoder::process(DataContainerPtr buf)
     pkt.size=0;
     _p->_frame->pts = _p->_fc++;
 
-    VideoBuffer* vb = static_cast<VideoBuffer*>(buf.get());
+    EncodeContainer* ec = static_cast<EncodeContainer*>(buf.get());
+    VideoBuffer* vb = ec->_frameData.get();
     vb->beginReadPtr();
 
     uint8_t* frameData = vb->getDataPtr();
 
+    auto cscs = std::chrono::high_resolution_clock::now();
+
     //fill NV12 from YUYV
     for (size_t y = 0; y<_p->_ctx->height;y=y+2){
-        for (size_t x = 0; x<_p->_ctx->width;x=x+2){
-            const uint8_t y00 = frameData[(y+0)*_p->_ctx->width*2 + 2*(x+0)];
-            const uint8_t y01 = frameData[(y+0)*_p->_ctx->width*2 + 2*(x+1)];
-            const uint8_t y10 = frameData[(y+1)*_p->_ctx->width*2 + 2*(x+0)];
-            const uint8_t y11 = frameData[(y+1)*_p->_ctx->width*2 + 2*(x+1)];
+        const uint8_t* const readLine1Start = frameData + (y+0)*_p->_ctx->width*2;
+        const uint8_t* const readLine2Start = frameData + (y+1)*_p->_ctx->width*2;
+        uint8_t* const writeYLine1Start = _p->_frame->data[0] + (y+0)*_p->_frame->linesize[0];
+        uint8_t* const writeYLine2Start = _p->_frame->data[0] + (y+1)*_p->_frame->linesize[0];
+        uint8_t* const writeCbCrLineStart = _p->_frame->data[1] + (y/2)*_p->_frame->linesize[1];
 
-            const uint16_t cb0 = frameData[(y+0)*_p->_ctx->width*2 + 2*(x+0)+1];
-            const uint16_t cr0 = frameData[(y+0)*_p->_ctx->width*2 + 2*(x+0)+3];
+        for (size_t x = 0; x<_p->_ctx->width;x=x+4){
+            writeYLine1Start[x + 0] = readLine1Start[2*(x+0)];
+            writeYLine1Start[x + 1] = readLine1Start[2*(x+1)];
+            writeYLine1Start[x + 2] = readLine1Start[2*(x+2)];
+            writeYLine1Start[x + 3] = readLine1Start[2*(x+3)];
+            writeYLine2Start[x + 0] = readLine2Start[2*(x+0)];
+            writeYLine2Start[x + 1] = readLine2Start[2*(x+1)];
+            writeYLine2Start[x + 2] = readLine2Start[2*(x+2)];
+            writeYLine2Start[x + 3] = readLine2Start[2*(x+3)];
 
-            const uint16_t cb1 = frameData[(y+1)*_p->_ctx->width*2 + 2*(x+0)+1];
-            const uint16_t cr1 = frameData[(y+1)*_p->_ctx->width*2 + 2*(x+0)+3];
-
-            _p->_frame->data[0][(y+0)*_p->_frame->linesize[0] + x + 0] = y00;
-            _p->_frame->data[0][(y+0)*_p->_frame->linesize[0] + x + 1] = y01;
-            _p->_frame->data[0][(y+1)*_p->_frame->linesize[0] + x + 0] = y10;
-            _p->_frame->data[0][(y+1)*_p->_frame->linesize[0] + x + 1] = y11;
-
-            _p->_frame->data[1][(y/2)*_p->_frame->linesize[1] + x/2] = (cb0+cb1)/2;
-            _p->_frame->data[2][(y/2)*_p->_frame->linesize[2] + x/2] = (cr0+cr1)/2;
+            writeCbCrLineStart[x+0]=(readLine1Start[2*(x+0)+1]+readLine2Start[2*(x+0)+1])/2;
+            writeCbCrLineStart[x+1]=(readLine1Start[2*(x+0)+3]+readLine2Start[2*(x+0)+3])/2;
+            writeCbCrLineStart[x+2]=(readLine1Start[2*(x+2)+1]+readLine2Start[2*(x+2)+1])/2;
+            writeCbCrLineStart[x+3]=(readLine1Start[2*(x+2)+3]+readLine2Start[2*(x+2)+3])/2;
         }
     }
+    auto csce = std::chrono::high_resolution_clock::now();
     vb->endReadPtr();
     auto ret = avcodec_encode_video2(_p->_ctx, &pkt, _p->_frame, &got_output);
     if (ret < 0) {
@@ -132,6 +137,11 @@ DataContainerPtr FfmpegEncoder::process(DataContainerPtr buf)
         _p->_file.flush();
         av_free_packet(&pkt);
     }
+    auto ee = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nH264: " << std::chrono::duration_cast<std::chrono::microseconds>(csce-cscs).count() << " " <<
+                 std::chrono::duration_cast<std::chrono::microseconds>(ee-csce).count() << "\n";
+
     return DataContainerPtr();
 }
 
