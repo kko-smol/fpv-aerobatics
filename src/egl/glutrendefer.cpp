@@ -57,7 +57,7 @@ int GlutRenderer::init()
     printf( "OpenGL version supported %s\n", version );
 
     _scene->glCheckError();
-    return _scene->initEgl();;
+    return _scene->init(this);
 }
 
 void GlutRenderer::render()
@@ -72,15 +72,18 @@ void GlutRenderer::render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _scene->glCheckError();
+    _eyeNum = 1;
     glViewport(0, 0, scr_w/2, scr_h);
     _scene->glCheckError();
-    _scene->draw(_view,_proj);
+    _scene->draw(_view*_leye,_proj);
     _scene->glCheckError();
+    _eyeNum = 2;
     glViewport(scr_w/2, 0, scr_w/2, scr_h);
     _scene->glCheckError();
-    _scene->draw(_view,_proj);
+    _scene->draw(_view*_reye,_proj);
     _scene->glCheckError();
     _scene->glCheckError();
+    _eyeNum = 0;
     glfwSwapBuffers( (GLFWwindow*)_window );
     _scene->glCheckError();
 }
@@ -88,4 +91,18 @@ void GlutRenderer::render()
 void GlutRenderer::exec()
 {
     glfwPollEvents();
+}
+
+const glm::mat4 GlutRenderer::screenMatrix() const
+{
+    return glm::mat4(1.0f);
+}
+
+const glm::mat4 &GlutRenderer::currentEyeMat() const
+{
+    if (_eyeNum==1){
+        return _leye;
+    } else {
+        return _reye;
+    }
 }

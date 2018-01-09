@@ -25,17 +25,19 @@ bool App::init()
 {
 
 #ifdef __arm__
+    std::string dev = "/dev/video0";
     _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyS1",115200);
     _tel = std::make_shared<TelemetryReader>();
     _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 #else
+    std::string dev = "/dev/video1";
     _serial = std::make_shared<SerialPortIo>(_io,"/dev/ttyACM0",115200);
     _tel = std::make_shared<TelemetryReader>();
     _serial->listen(std::static_pointer_cast<IOClient>(_tel));
 #endif
 
     //// video capture
-    std::string dev = "/dev/video0";
+
     int vw = 640;
     int vh = 480;
     std::cout << "1" << std::endl;
@@ -81,9 +83,11 @@ bool App::init()
 
     _tel->subscribe(std::static_pointer_cast<TelemetryListener>(_trackController));
 
-    glm::mat4 proj = glm::perspective(glm::radians(40.0),0.5*720.0/576.0,10.0,10000.0);
+    glm::mat4 proj = glm::perspective(glm::radians(50.0f),_renderer->getEyeW()/_renderer->getEyeH(),10.0f,10000.0f)*_renderer->screenMatrix();
     //proj = glm::tweakedInfinitePerspective(glm::radians(45.0),0.5*720.0/576.0,1.0);
     _renderer->setProjMat(proj);
+    _renderer->setEyeMats(glm::translate(glm::mat4(1.0f),glm::vec3( 1.0f,0.0,0.0)),
+                          glm::translate(glm::mat4(1.0f),glm::vec3(-1.0f,0.0,0.0)));
 
     _encoder = std::make_shared<FfmpegEncoder>(vw,vh,"/home/kest/rec.h264");
     _compress =std::make_shared<ProcessThread>(_encoder);

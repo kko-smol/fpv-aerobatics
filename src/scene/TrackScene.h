@@ -15,10 +15,10 @@ public:
 
     // Scene interface
 public:
-    virtual int initEgl() override;
     virtual void draw(const  glm::mat4 &viewMat,const  glm::mat4 &projMat, const glm::mat4 modelMat) override;
 
 private:
+    virtual int initEgl() override;
     TrackPtr _track;
     ScenePtr _checkpoint;
     ScenePtr _arrow;

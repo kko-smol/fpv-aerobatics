@@ -1,8 +1,10 @@
 #include "ffmpegencoder.h"
 #include <fstream>
 #include <iostream>
+#include <map>
 
 extern "C"{
+#include "h264bitstream-master/h264_stream.h"
 #include <libavutil/opt.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/channel_layout.h>
@@ -12,11 +14,22 @@ extern "C"{
 #include <libavutil/samplefmt.h>
 }
 
+struct FrameTelemetry
+{
+    uint32_t _frameNum;
+    glm::vec3 _gps;
+    glm::vec3 _att;
+};
+
 class EncoderPrivate{
 public:
     EncoderPrivate(){
         _codec = nullptr;
         _opened =false;
+        _h264 = h264_new();
+        _h264->num_seis=1;
+        _h264->seis = new sei_t*;
+        _h264->seis[0] = new sei_t;
     }
     AVCodec * _codec;
     AVCodecContext * _ctx= NULL;
@@ -24,6 +37,9 @@ public:
     AVFrame* _frame;
     std::ofstream _file;
     bool _opened;
+    std::map<size_t,FrameTelemetry> _tq;
+    h264_stream_t* _h264;
+    std::chrono::high_resolution_clock::time_point _start;
 };
 
 FfmpegEncoder::FfmpegEncoder(int w, int h, std::string file){
@@ -77,6 +93,7 @@ FfmpegEncoder::FfmpegEncoder(int w, int h, std::string file){
     }
 
     _p->_file = std::ofstream(file,std::ios::out | std::ios::binary | std::ios::app);
+    _p->_start = std::chrono::high_resolution_clock::now();
 }
 
 FfmpegEncoder::~FfmpegEncoder()
@@ -91,15 +108,16 @@ DataContainerPtr FfmpegEncoder::process(DataContainerPtr buf)
     av_init_packet(&pkt);
     pkt.data = NULL;
     pkt.size=0;
-    _p->_frame->pts = _p->_fc++;
 
-    EncodeContainer* ec = static_cast<EncodeContainer*>(buf.get());
+    std::shared_ptr<EncodeContainer> ec = std::static_pointer_cast<EncodeContainer>(buf);
     VideoBuffer* vb = ec->_frameData.get();
     vb->beginReadPtr();
 
     uint8_t* frameData = vb->getDataPtr();
 
     auto cscs = std::chrono::high_resolution_clock::now();
+    uint32_t pts = std::chrono::duration_cast<std::chrono::milliseconds>(cscs-_p->_start).count();
+    _p->_frame->pts = pts/(1000.0/30.0);
 
     //fill NV12 from YUYV
     for (size_t y = 0; y<_p->_ctx->height;y=y+2){
@@ -127,20 +145,42 @@ DataContainerPtr FfmpegEncoder::process(DataContainerPtr buf)
     }
     auto csce = std::chrono::high_resolution_clock::now();
     vb->endReadPtr();
+    FrameTelemetry ft;
+    ft._frameNum = _p->_frame->pts;
+    ft._att = ec->_angles;
+    ft._gps = ec->_pos;
+    _p->_tq.insert({_p->_frame->pts,ft});
     auto ret = avcodec_encode_video2(_p->_ctx, &pkt, _p->_frame, &got_output);
     if (ret < 0) {
         fprintf(stderr, "Error encoding frame\n");
         exit(1);
     }
     if (got_output) {
+        FrameTelemetry ft = _p->_tq[pkt.pts];
+        _p->_tq.erase(pkt.pts);
         _p->_file.write((const char*)pkt.data,pkt.size);
-        _p->_file.flush();
-        av_free_packet(&pkt);
-    }
-    auto ee = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nH264: " << std::chrono::duration_cast<std::chrono::microseconds>(csce-cscs).count() << " " <<
-                 std::chrono::duration_cast<std::chrono::microseconds>(ee-csce).count() << "\n";
+        av_free_packet(&pkt);
+        //write telemetry frame
+        _p->_h264->seis[0]->payloadType = SEI_TYPE_USER_DATA_UNREGISTERED;
+        _p->_h264->seis[0]->payloadSize = sizeof(FrameTelemetry);
+        _p->_h264->seis[0]->data = (uint8_t*)&ft;
+        _p->_h264->nal->forbidden_zero_bit = 0;
+        _p->_h264->nal->nal_ref_idc = 0;
+        _p->_h264->nal->nal_unit_type = NAL_UNIT_TYPE_SEI;
+
+        uint8_t seibuf[128];
+
+        //3 not 4 that write_nal_unit add 0x00 before data
+        int n = write_nal_unit(_p->_h264,&seibuf[3],128-4);
+        seibuf[0] = 0x00;
+        seibuf[1] = 0x00;
+        seibuf[2] = 0x00;
+        seibuf[3] = 0x01;
+        _p->_file.write((const char*)seibuf,n+3);
+
+        _p->_file.flush();
+    }
 
     return DataContainerPtr();
 }

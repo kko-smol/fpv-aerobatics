@@ -1,5 +1,6 @@
 #include "telemetryreader.h"
 #include <iostream>
+#include <mavlink/ardupilotmega/ardupilotmega.h>
 
 TelemetryReader::TelemetryReader()
 {
@@ -17,14 +18,14 @@ void TelemetryReader::onBufRx(std::vector<uint8_t> buf)
     mavlink_message_t message;
     mavlink_status_t status;
 
-      for (int position = 0; position < buf.size(); position++) {
-          unsigned int decodeState = mavlink_parse_char(MAVLINK_COMM_0, (uint8_t)(buf[position]), &message, &status);
+    for (int position = 0; position < buf.size(); position++) {
+        unsigned int decodeState = mavlink_parse_char(MAVLINK_COMM_0, (uint8_t)(buf[position]), &message, &status);
 
-          if (decodeState == 1)
-          {
-              readMessage(&message);
-          }
-      }
+        if (decodeState == 1)
+        {
+            readMessage(&message);
+        }
+    }
 }
 
 void TelemetryReader::subscribe(TelemetryListenerPtr s)
@@ -97,15 +98,26 @@ void TelemetryReader::readMessage(mavlink_message_t* msg)
             mavlink_message_t hb_msg;
             mavlink_msg_heartbeat_encode(0,0,&hb_msg,&st);
             sendMessage(&hb_msg);
-
-            mavlink_request_data_stream_t rq;
-            rq.target_system = msg->sysid;
-            rq.target_component = msg->compid;
-            rq.req_message_rate = 25;
-            rq.req_stream_id = MAV_DATA_STREAM_EXTRA1;
-            rq.start_stop = 1;
-            mavlink_msg_request_data_stream_encode(0,0,&hb_msg,&rq);
-            sendMessage(&hb_msg);
+            {
+                mavlink_request_data_stream_t rq;
+                rq.target_system = msg->sysid;
+                rq.target_component = msg->compid;
+                rq.req_message_rate = 25;
+                rq.req_stream_id = MAV_DATA_STREAM_EXTRA1;
+                rq.start_stop = 1;
+                mavlink_msg_request_data_stream_encode(0,0,&hb_msg,&rq);
+                sendMessage(&hb_msg);
+            }
+            {
+                mavlink_request_data_stream_t rq;
+                rq.target_system = msg->sysid;
+                rq.target_component = msg->compid;
+                rq.req_message_rate = 25;
+                rq.req_stream_id = MAV_DATA_STREAM_POSITION;
+                rq.start_stop = 1;
+                mavlink_msg_request_data_stream_encode(0,0,&hb_msg,&rq);
+                sendMessage(&hb_msg);
+            }
             break;
         }
 
@@ -128,13 +140,21 @@ void TelemetryReader::readMessage(mavlink_message_t* msg)
             mavlink_global_position_int_t pos;
             mavlink_msg_global_position_int_decode(msg, &pos);
 
-            //_lastAlt = ((float)pos.alt)/1000.0;
-            //_lastLat = ((double)pos.lat)/1.0e7;
-            //_lastLon = ((double)pos.lon)/1.0e7;
+            auto lastAlt = ((float)pos.alt)/1000.0;
+            auto lastLat = ((double)pos.lat)/1.0e7;
+            auto lastLon = ((double)pos.lon)/1.0e7;
 
-            _lastLat = 54.814595;
-            _lastLon = 32.019016;
-            _lastAlt = 300.0;
+            //if ((lastAlt!=_lastAlt)||(lastLon!=_lastLon)||(lastLat!=_lastLat)){
+            //std::cout << "GPS:" << _lastLat << " " << _lastLon << " " << _lastAlt << std::endl;
+            //}
+
+            _lastAlt=lastAlt;
+            _lastLat=lastLat;
+            _lastLon=lastLon;
+
+            //_lastLat = 54.806555;
+            //_lastLon = 32.015555;
+            //_lastAlt = 300.0;
 
             notifyClients();
             break;

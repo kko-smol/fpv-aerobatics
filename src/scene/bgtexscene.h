@@ -7,11 +7,12 @@ class BgTexScene : public Scene {
 public:
     BgTexScene();
 
-    virtual int initEgl() override;
     void updateBgTexture(VideoBufferPtr b);
     virtual void draw(const  glm::mat4 &viewMat,const  glm::mat4 &projMat, const glm::mat4 model) override;
 
 private:
+
+    virtual int initEgl() override;
     int _texVShader;
     int _texPShader;
     int _texShaderPrg;

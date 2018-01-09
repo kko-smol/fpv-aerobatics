@@ -10,7 +10,7 @@ int GroupScene::initEgl()
 {
     glCheckError();
     for (size_t i=0; i<_parts.size();++i){
-        if (!_parts[i]->initEgl()){
+        if (!_parts[i]->init(renderer())){
             return 0;
         }
         glCheckError();

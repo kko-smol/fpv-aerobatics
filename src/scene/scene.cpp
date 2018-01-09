@@ -10,7 +10,7 @@
 #include <GLFW/glfw3.h>
 #endif
 
-Scene::Scene()
+Scene::Scene():_renderer(nullptr)
 {
 
 }
@@ -18,6 +18,12 @@ Scene::Scene()
 Scene::~Scene()
 {
 
+}
+
+int Scene::init(Renderer * r)
+{
+    _renderer = r;
+    initEgl();
 }
 
 void Scene::glCheckError(){
@@ -28,4 +34,9 @@ void Scene::glCheckError(){
         err = glGetError();
         //GL_INVALID_ENUM
     }
+}
+
+Renderer *Scene::renderer() const
+{
+    return _renderer;
 }

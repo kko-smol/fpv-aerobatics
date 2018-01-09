@@ -31,6 +31,9 @@ public:
 
 EglRenderer::EglRenderer(ScenePtr scene):Renderer(scene)
 {
+    _screen = glm::scale(glm::mat4(1.0f),glm::vec3(1.0,1.4,1.0f));
+    _xBorder =32;
+    _yBorder =0;
     _egl  = new EglPrivate();
 }
 
@@ -97,7 +100,7 @@ int EglRenderer::init()
     if (!eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context)) {
         return 0;
     }
-    if (!_scene->initEgl()){
+    if (!_scene->init(this)){
         return 0;
     }
 
@@ -115,20 +118,22 @@ void EglRenderer::render()
 {
     eglMakeCurrent(_egl->_display, _egl->_surface, _egl->_surface, _egl->_context);
 
-    glViewport(0, 0, scr_w, scr_h);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, scr_w/2, scr_h);
-
     glm::mat4 m(1.0f);
 
-    _scene->draw(_view,_proj,m);
+    glViewport(0, 0, scr_w, scr_h);
+    glClearColor(0.0, 1.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(scr_w/2, 0, scr_w/2, scr_h);
-    _scene->draw(_view,_proj,m);
+    _currentEye = 1;
+    glViewport(_xBorder, _yBorder, scr_w/2-_xBorder, scr_h-2*_yBorder);
+    _scene->draw(_view*_leye,_proj,m);
+
+    _currentEye = 2;
+    glViewport(scr_w/2, _yBorder, scr_w/2-_xBorder, scr_h-2*_yBorder);
+    _scene->draw(_view*_reye,_proj,m);
 
     glFinish();
+    _currentEye = 0;
     if (!eglSwapBuffers(_egl->_display, _egl->_surface)){
         std::cout << "SWap error: " << eglGetError() << std::endl;
     }
@@ -137,4 +142,18 @@ void EglRenderer::render()
 void EglRenderer::exec()
 {
 
+}
+
+const glm::mat4 EglRenderer::screenMatrix() const
+{
+    return _screen;
+}
+
+const glm::mat4 &EglRenderer::currentEyeMat() const
+{
+    if (_currentEye==1){
+        return _leye;
+    } else {
+        return _reye;
+    }
 }

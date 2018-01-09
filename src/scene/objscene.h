@@ -8,17 +8,16 @@ class ObjScene:public Scene
 public:
     ObjScene(std::string file);
 
-
-
     // Scene interface
 public:
-    virtual int initEgl() override;
     virtual void draw(const glm::mat4 &viewMat,const glm::mat4 &projMat, const glm::mat4 modelMat) override;
 
     glm::vec4 color() const;
     void setColor(const glm::vec4 &color);
 
 private:
+
+    virtual int initEgl() override;
     int _vecVShader;
     int _vecPShader;
     int _vecShaderPrg;

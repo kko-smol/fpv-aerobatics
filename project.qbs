@@ -26,6 +26,7 @@ Project {
 
         cpp.defines:[
             "GLES_VERSION=2",
+            "HAVE_SEI"
         ]
 
         Group {
@@ -119,11 +120,15 @@ Project {
 
         Group {
             name: "h264encode"
-            prefix: "src/h264Compress/**/"
+            prefix: "src/h264Compress/"
             files:[
                 "*.c",
                 "*.cpp",
-                "*.h"
+                "*.h",
+
+                "h264bitstream-master/h264_stream.c",
+                "h264bitstream-master/h264_nal.c",
+                "h264bitstream-master/h264_sei.c",
             ]
         }
 

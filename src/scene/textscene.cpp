@@ -1,5 +1,6 @@
 #include "textscene.h"
 #include <shaders.h>
+#include <renderer.h>
 
 #include <iostream>
 extern "C" {

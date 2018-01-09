@@ -1,12 +1,12 @@
 #include "TrackScene.h"
 #include <objscene.h>
-
+#include <renderer.h>
 
 TrackScene::TrackScene(ScenePtr checkpoint, TrackPtr track, std::shared_ptr<TrackController> tc, ScenePtr arrow,std::shared_ptr<TelemetryReader> tel):Scene(),
     _track(track),_checkpoint(checkpoint),_tc(tc),_arrow(arrow),_tel(tel)
 {
-    _distText = std::make_shared<TextScene>(6);
-    _timeText = std::make_shared<TextScene>(9);
+    _distText = std::make_shared<TextScene>(5);
+    _timeText = std::make_shared<TextScene>(5);
 }
 
 int TrackScene::initEgl()
@@ -26,10 +26,10 @@ int TrackScene::initEgl()
         _pointMats.push_back(m);
     }
 
-    _arrow->initEgl();
-    _distText->initEgl();
-    _timeText->initEgl();
-    return _checkpoint->initEgl();
+    _arrow->init(renderer());
+    _distText->init(renderer());
+    _timeText->init(renderer());
+    return _checkpoint->init(renderer());
 }
 
 void TrackScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const glm::mat4 modelMat)

@@ -1,6 +1,7 @@
 #include "bgtexscene.h"
 #include <shaders.h>
 
+#include <renderer.h>
 #include <iostream>
 extern "C" {
 #ifdef __arm__
@@ -129,13 +130,11 @@ int BgTexScene::initEgl()
             return 0;
         }
 
-#define RATIO_K (1.0/(640.0/480.0))
-
         static const GLfloat vVertices[] = {
-            0.5f*RATIO_K,  -0.5f,  -1.0f, 1.0f,
-            0.5f*RATIO_K,   0.5f,  -1.0f, 1.0f,
-            -0.5f*RATIO_K,  -0.5f, -1.0f, 1.0f,
-            -0.5f*RATIO_K,   0.5f, -1.0f, 1.0f
+             0.5f*480.0,  -0.5*640.0,  -1.0f, 1.0f,
+             0.5f*480.0,   0.5*640.0,  -1.0f, 1.0f,
+            -0.5f*480.0,  -0.5*640.0,  -1.0f, 1.0f,
+            -0.5f*480.0,   0.5*640.0,  -1.0f, 1.0f
         };
 
         static const GLfloat vUV[] = {
@@ -218,22 +217,22 @@ void BgTexScene::draw(const glm::mat4 &viewMat, const glm::mat4 &projMat, const 
     glUniform1i(_textureU, 0);
     glCheckError();
     auto v = glm::mat4(1.0f);
-    float w =720.0/2;
-    float h= 576.0;
+
     auto p = glm::mat4(1.0f);
 
-    auto m = glm::scale(glm::mat4(1.0f),glm::vec3(2.0f*h/w,2.0f,1.0f));
+    float kx = (2.0/480.0);
+    float ky = (2.0/480.0)*((renderer()->getEyeW()/renderer()->getEyeH()));
 
-    auto mvp = p*v*m;
+    auto m = glm::scale(glm::mat4(1.0f),glm::vec3(kx,ky,1.0f))*renderer()->screenMatrix();
+
+    auto mvp = p*v*m*renderer()->currentEyeMat();
 
     glUniformMatrix4fv(_texmvpMatU, 1, GL_FALSE, glm::value_ptr(mvp));
     glCheckError();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glCheckError();
-
     glClearColor(0,0,-1000,-1000);
     glClear(GL_DEPTH_BUFFER_BIT);
-
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
 }

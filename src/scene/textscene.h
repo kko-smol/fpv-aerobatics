@@ -10,10 +10,10 @@ public:
 
     void setText(std::string);
 
-    virtual int initEgl() override;
     virtual void draw(const  glm::mat4 &viewMat,const  glm::mat4 &projMat, const glm::mat4 model) override;
 
 private:
+    virtual int initEgl() override;
     int _texVShader;
     int _texPShader;
     int _texShaderPrg;
